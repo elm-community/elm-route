@@ -1,7 +1,7 @@
 module Route ( Router, Route
              , match, reverse, route, map
              , prefix, and, static, custom, string, int
-             , (<//>), (</>)
+             , (<$>), (<//>), (</>)
              ) where
 
 {-| This module represents an experimental approach to route parsing.
@@ -14,11 +14,8 @@ module Route ( Router, Route
 # Using Routers
 @docs match
 
-# Constructing Routes
-@docs route
-
 # Route combinators
-@docs prefix, (<//>), and, (</>), static, custom, string, int
+@docs route, (<$>), prefix, (<//>), and, (</>), static, custom, string, int
 
 # Transforming Routers
 @docs map
@@ -61,7 +58,7 @@ prefix s r =
 {-| Compose two Routes. -}
 and : Route a -> Route b -> Route (a, b)
 and lr rr =
-  { parser = (,) <$> (lr.parser <* Combine.string "/") <*> rr.parser
+  { parser = (,) `Combine.map` (lr.parser <* Combine.string "/") <*> rr.parser
   , components = lr.components ++ rr.components
   }
 
@@ -124,13 +121,20 @@ infixl 9 <//>
 {-| Transform the return value of a Route. -}
 route : (a -> res) -> Route a -> Route res
 route f rc =
-  { rc | parser = f <$> (Combine.string "/" *> rc.parser <* Combine.end) }
+  { rc | parser = f `Combine.map` (Combine.string "/" *> rc.parser <* Combine.end) }
+
+
+{-| A synonym for `route`. -}
+(<$>) : (a -> res) -> Route a -> Route res
+(<$>) = route
+
+infixl 7 <$>
 
 
 {-| Transform the results of a router. -}
 map : (a -> b) -> Router a -> Router b
 map f routes =
-  List.map (\r -> { r | parser = f <$> r.parser }) routes
+  List.map (\r -> { r | parser = f `Combine.map` r.parser }) routes
 
 
 {-| Render a path given a route and a list of route parameters.

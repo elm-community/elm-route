@@ -32,13 +32,13 @@ adminUsersR = route AdminUsers ("admin" <//> static "users")
 adminRoutes : Router AdminArea
 adminRoutes = [adminHomeR, adminUsersR]
 
-homeR = route Home (static "")
-usersR = route Users (static "users")
-userR = route User ("users" <//> int)
-userEmailsR = route UserEmails ("users" <//> int </> static "emails")
-userEmailR = route UserEmail ("users" <//> int </> "emails" <//> int)
-deepR = route Deep ("deep" <//> int </> int </> int)
-customR = route Custom' ("custom" <//> custom fooP)
+homeR = Home <$> static ""
+usersR = Users <$> static "users"
+userR = User <$> "users" <//> int
+userEmailsR = UserEmails <$> "users" <//> int </> static "emails"
+userEmailR = UserEmail <$> "users" <//> int </> "emails" <//> int
+deepR = Deep <$> "deep" <//> int </> int </> int
+customR = Custom' <$> "custom" <//> custom fooP
 
 siteMap : Router Sitemap
 siteMap = [homeR, usersR, userR, userEmailsR, userEmailR, deepR, customR] ++ (Route.map Admin adminRoutes)
