@@ -35,7 +35,7 @@ type Component
 
 
 {-| Routes are the basic building block, they may be composed in
-aritray ways to form concrete parsers for paths. -}
+arbitrary ways to form concrete parsers for paths. -}
 type alias Route a
   = { parser : Parser a
     , components : List Component
