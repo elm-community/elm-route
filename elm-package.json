@@ -4,7 +4,7 @@
     "repository": "https://github.com/Bogdan/elm-route.git",
     "license": "BSD3",
     "source-directories": [
-        "."
+        "src"
     ],
     "exposed-modules": ["Route"],
     "dependencies": {
