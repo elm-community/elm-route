@@ -12,7 +12,7 @@ type Sitemap
   = Home ()
   | Users ()
   | User Int
-  | UserEmails (Int, ())
+  | UserEmails Int
   | UserEmail (Int, Int)
   | Admin AdminArea
   | Deep ((Int, Int), Int)
@@ -38,12 +38,25 @@ adminUserR = AdminUser <$> "admin/users" <//> int
 adminRoutes : Router AdminArea
 adminRoutes = router [adminHomeR, adminUsersR, adminUserR]
 
-homeR = Home <$> static ""
+homeR : Route Sitemap
+homeR = Home := static ""
+
+usersR : Route Sitemap
 usersR = Users <$> static "users"
+
+userR : Route Sitemap
 userR = User <$> "users" <//> int
-userEmailsR = UserEmails <$> "users" <//> int </> static "emails"
+
+userEmailsR : Route Sitemap
+userEmailsR = UserEmails <$> "users" <//> int <> "emails"
+
+userEmailR : Route Sitemap
 userEmailR = UserEmail <$> "users" <//> int </> "emails" <//> int
+
+deepR : Route Sitemap
 deepR = Deep <$> "deep" <//> int </> int </> int
+
+customR : Route Sitemap
 customR = Custom' <$> "custom" <//> custom fooP
 
 siteMap : Router Sitemap
@@ -58,7 +71,7 @@ render r =
     Home _ -> reverse homeR []
     Users _ -> reverse usersR []
     User id -> reverse userR [toString id]
-    UserEmails (id, _) -> reverse userEmailsR [toString id]
+    UserEmails id -> reverse userEmailsR [toString id]
     UserEmail (uid, eid) -> reverse userEmailR [toString uid, toString eid]
     Deep ((x, y), z) -> reverse deepR [toString x, toString y, toString z]
     Custom' x -> reverse customR [toString x]
@@ -75,13 +88,25 @@ renderAdmin r =
 matching : Test
 matching =
   suite "Matching"
-    [ test "Match home" (assertEqual (Just (Home ())) (match siteMap "/"))
-    , test "Match users" (assertEqual (Just (Users ())) (match siteMap "/users"))
-    , test "Match user" (assertEqual (Just (User 1)) (match siteMap "/users/1"))
-    , test "Fail user" (assertEqual Nothing (match siteMap "/users/a"))
+    [ test "Match home"
+        <| assertEqual
+             (Just (Home ()))
+             (match siteMap "/")
+    , test "Match users"
+        <| assertEqual
+             (Just (Users ()))
+             (match siteMap "/users")
+    , test "Match user"
+        <| assertEqual
+             (Just (User 1))
+             (match siteMap "/users/1")
+    , test "Fail user"
+        <| assertEqual
+             Nothing
+             (match siteMap "/users/a")
     , test "Match user emails"
         <| assertEqual
-             (Just (UserEmails (1, ())))
+             (Just (UserEmails 1))
              (match siteMap "/users/1/emails")
     , test "Match user email"
         <| assertEqual
@@ -91,13 +116,34 @@ matching =
         <| assertEqual
              (Just (Deep ((1, 2), 3)))
              (match siteMap "/deep/1/2/3")
-    , test "Match custom Foo" (assertEqual (Just (Custom' Foo)) (match siteMap "/custom/Foo"))
-    , test "Match custom Bar" (assertEqual (Just (Custom' Bar)) (match siteMap "/custom/Bar"))
-    , test "Fail custom" (assertEqual Nothing (match siteMap "/custom/Baz"))
-    , test "Match admin" (assertEqual (Just (Admin (AdminHome ()))) (match siteMap "/admin"))
-    , test "Match admin users" (assertEqual (Just (Admin (AdminUsers ()))) (match siteMap "/admin/users"))
-    , test "Match admin user" (assertEqual (Just (Admin (AdminUser 1))) (match siteMap "/admin/users/1"))
-    , test "Not found" (assertEqual Nothing (match siteMap "/i-dont-exist"))
+    , test "Match custom Foo"
+        <| assertEqual
+             (Just (Custom' Foo))
+             (match siteMap "/custom/Foo")
+    , test "Match custom Bar"
+        <| assertEqual
+             (Just (Custom' Bar))
+             (match siteMap "/custom/Bar")
+    , test "Fail custom"
+        <| assertEqual
+             Nothing
+             (match siteMap "/custom/Baz")
+    , test "Match admin"
+        <| assertEqual
+             (Just (Admin (AdminHome ())))
+             (match siteMap "/admin")
+    , test "Match admin users"
+        <| assertEqual
+             (Just (Admin (AdminUsers ())))
+             (match siteMap "/admin/users")
+    , test "Match admin user"
+        <| assertEqual
+             (Just (Admin (AdminUser 1)))
+             (match siteMap "/admin/users/1")
+    , test "Not found"
+        <| assertEqual
+             Nothing
+             (match siteMap "/i-dont-exist")
     ]
 
 

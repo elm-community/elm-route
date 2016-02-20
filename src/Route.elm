@@ -1,7 +1,7 @@
 module Route ( Router, Route
              , router, match, reverse, route, child
-             , prefix, and, static, custom, string, int
-             , (<$>), (<//>), (</>)
+             , prefix, suffix, and, static, custom, string, int
+             , (<$>), (<//>), (</>), (<>)
              ) where
 
 {-| This module represents an experimental approach to route parsing.
@@ -15,7 +15,7 @@ module Route ( Router, Route
 @docs reverse
 
 ## Route combinators
-@docs route, (<$>), prefix, (<//>), and, (</>), static, custom, string, int
+@docs route, (<$>), prefix, (<//>), and, (</>), suffix, (<>), static, custom, string, int
 -}
 
 import Combine exposing (Parser)
@@ -26,6 +26,7 @@ import String
 
 type Component
   = CPrefix String
+  | CSuffix String
   | CCustom (String -> Result String ())
   | CString
   | CInt
@@ -70,12 +71,30 @@ unwrap r =
       p
 
 
-{-| Create a Route that is prefixed by a given string followed by '/'. -}
+{-| Create a Route that is prefixed by a given string followed by `/`. -}
 prefix : String -> Route res -> Route res
 prefix s r =
-  { parser = Combine.string s *> Combine.string "/" *> r.parser
+  { parser = Combine.string (s ++ "/") *> r.parser
   , components = [CPrefix s] ++ r.components
   }
+
+
+{-| A synonym for `prefix`. -}
+(<//>) : String -> Route res -> Route res
+(<//>) = prefix
+
+
+{-| Create a Route that is suffixed by `/` followed by a given string. -}
+suffix : String -> Route res  -> Route res
+suffix s r =
+  { parser = r.parser <* Combine.string ("/" ++ s)
+  , components = r.components ++ [CSuffix s]
+  }
+
+
+{-| Infix variant of `suffix`. -}
+(<>) : Route res -> String -> Route res
+(<>) = flip suffix
 
 
 {-| Compose two Routes. -}
@@ -84,6 +103,11 @@ and lr rr =
   { parser = (,) `Combine.map` (lr.parser <* Combine.string "/") <*> rr.parser
   , components = lr.components ++ rr.components
   }
+
+
+{-| A synonym for `and`. -}
+(</>) : Route a -> Route b -> Route (a, b)
+(</>) = and
 
 
 {-| Create a Route that matches a static String. -}
@@ -119,28 +143,12 @@ string =
   }
 
 
-{-| A Route that matches any integer.
-
- -}
+{-| A Route that matches any integer. -}
 int : Route Int
 int =
   { parser = Combine.Num.int
   , components = [CInt]
   }
-
-
-{-| A synonym for `and`. -}
-(</>) : Route a -> Route b -> Route (a, b)
-(</>) = and
-
-infixl 8 </>
-
-
-{-| A synonym for `prefix`. -}
-(<//>) : String -> Route res -> Route res
-(<//>) = prefix
-
-infixl 9 <//>
 
 
 {-| Transform the return value of a Route. -}
@@ -152,8 +160,6 @@ route f r =
 {-| A synonym for `route`. -}
 (<$>) : (a -> res) -> Route a -> Route res
 (<$>) = route
-
-infixl 7 <$>
 
 
 {-| Routers may be nested. This function is useful in situations
@@ -287,6 +293,9 @@ reverse r inputs =
         (_, CPrefix p :: xs) ->
           accumulate (p :: cs) is xs
 
+        (_, CSuffix p :: xs) ->
+          accumulate (p :: cs) is xs
+
         (i :: is, CCustom p :: xs) ->
           case p i of
             Ok _ ->
@@ -304,12 +313,17 @@ reverse r inputs =
               accumulate (i :: cs) is xs
 
             Err m ->
-              Debug.crash m
+              Debug.crash m ++ " in a call to 'reverse'"
 
         (i :: is, CFail m :: xs) ->
-          Debug.crash m
+          Debug.crash m ++ " in a call to 'reverse'"
 
         _ ->
-          Debug.crash "invalid arity in a call to 'reverse'"
+          Debug.crash "'reverse' called with an unexpected number of arguments"
   in
     accumulate [] inputs r.components
+
+
+infixl 7 <$>
+infixl 8 </>
+infixl 9 <//>
