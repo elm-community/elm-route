@@ -40,6 +40,24 @@ userEmailR = UserEmail <$> "users" <//> int </> "emails" <//> int
 deepR = Deep <$> "deep" <//> int </> int </> int
 customR = Custom' <$> "custom" <//> custom fooP
 
+render : Sitemap -> String
+render r =
+  case r of
+    Home _ -> reverse homeR []
+    Users _ -> reverse usersR []
+    User id -> reverse userR [toString id]
+    UserEmails (id, _) -> reverse userEmailsR [toString id]
+    UserEmail (uid, eid) -> reverse userEmailR [toString uid, toString eid]
+    Deep ((x, y), z) -> reverse deepR [toString x, toString y, toString z]
+    Custom' x -> reverse customR [toString x]
+    Admin r -> renderAdmin r
+
+renderAdmin : AdminArea -> String
+renderAdmin r =
+  case r of
+    AdminHome _ -> reverse adminHomeR []
+    AdminUsers _ -> reverse adminUsersR []
+
 siteMap : Router Sitemap
 siteMap = [homeR, usersR, userR, userEmailsR, userEmailR, deepR, customR] ++ (Route.map Admin adminRoutes)
 
