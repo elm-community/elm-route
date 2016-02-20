@@ -1,0 +1,15 @@
+{
+    "version": "1.0.0",
+    "summary": "an experimental route parser",
+    "repository": "https://github.com/Bogdan/elm-route.git",
+    "license": "BSD3",
+    "source-directories": [
+        "."
+    ],
+    "exposed-modules": ["Route"],
+    "dependencies": {
+        "Bogdanp/elm-combine": "2.0.1 <= v < 3.0.0",
+        "elm-lang/core": "3.0.0 <= v < 4.0.0"
+    },
+    "elm-version": "0.16.0 <= v < 0.17.0"
+}
