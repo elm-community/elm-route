@@ -521,5 +521,6 @@ reverse r inputs =
 
 
 infixl 7 :=
+infixr 9 <//>
 infixl 8 </>
-infixl 9 <//>
+infixr 9 <>

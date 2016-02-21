@@ -8,8 +8,8 @@ type AdminSitemap
   | AdminUserR Int
 
 adminHomeR = AdminHomeR := static "admin"
-adminUsersR = AdminUsersR := static "admin/users"
-adminUserR = AdminUserR := "admin/users" <//> int
+adminUsersR = AdminUsersR := "admin" <//> static "users"
+adminUserR = AdminUserR := "admin" <//> "users" <//> int
 adminSitemap = router [adminHomeR, adminUsersR, adminUserR]
 
 routeAdmin : AdminSitemap -> String

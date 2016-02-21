@@ -38,7 +38,7 @@ adminUsersR : Route AdminArea
 adminUsersR = AdminUsers := static "admin" <> "users"
 
 adminUserR : Route AdminArea
-adminUserR = AdminUser := "admin/users" <//> int
+adminUserR = AdminUser := "admin" <//> "users" <//> int
 
 adminRoutes : Router AdminArea
 adminRoutes = router [adminHomeR, adminUsersR, adminUserR]
