@@ -76,9 +76,6 @@ Then use them:
 > match "/"
 Just (HomeR ()) : Maybe.Maybe App.Routes.Sitemap
 
-> match "/"
-Just (HomeR ()) : Maybe.Maybe App.Routes.Sitemap
-
 > match "/users"
 Just (UsersR ()) : Maybe.Maybe App.Routes.Sitemap
 
