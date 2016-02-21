@@ -31,9 +31,14 @@ fooP = Combine.choice [ Foo <$ Combine.string "Foo"
                       , Bar <$ Combine.string "Bar"
                       ]
 
-adminHomeR = AdminHome <$> static "admin"
-adminUsersR = AdminUsers <$> static "admin/users"
-adminUserR = AdminUser <$> "admin/users" <//> int
+adminHomeR : Route AdminArea
+adminHomeR = AdminHome := static "admin"
+
+adminUsersR : Route AdminArea
+adminUsersR = AdminUsers := static "admin" <> "users"
+
+adminUserR : Route AdminArea
+adminUserR = AdminUser := "admin/users" <//> int
 
 adminRoutes : Router AdminArea
 adminRoutes = router [adminHomeR, adminUsersR, adminUserR]
@@ -42,22 +47,22 @@ homeR : Route Sitemap
 homeR = Home := static ""
 
 usersR : Route Sitemap
-usersR = Users <$> static "users"
+usersR = Users := static "users"
 
 userR : Route Sitemap
-userR = User <$> "users" <//> int
+userR = User := "users" <//> int
 
 userEmailsR : Route Sitemap
-userEmailsR = UserEmails <$> "users" <//> int <> "emails"
+userEmailsR = UserEmails := "users" <//> int <> "emails"
 
 userEmailR : Route Sitemap
-userEmailR = UserEmail <$> "users" <//> int </> "emails" <//> int
+userEmailR = UserEmail := "users" <//> int </> "emails" <//> int
 
 deepR : Route Sitemap
-deepR = Deep <$> "deep" <//> int </> int </> int
+deepR = Deep := "deep" <//> int </> int </> int
 
 customR : Route Sitemap
-customR = Custom' <$> "custom" <//> custom fooP
+customR = Custom' := "custom" <//> custom fooP
 
 siteMap : Router Sitemap
 siteMap =
