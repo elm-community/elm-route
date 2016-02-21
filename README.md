@@ -1,6 +1,6 @@
 # elm-route
 
-[![Build Status](https://travis-ci.org/Bogdanp/elm-route.svg)](https://travis-ci.org/Bogdanp/elm-combine)
+[![Build Status](https://travis-ci.org/Bogdanp/elm-route.svg)](https://travis-ci.org/Bogdanp/elm-route)
 
 ``` shell
 elm package install Bogdanp/elm-route
