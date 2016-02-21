@@ -1,18 +1,4 @@
-# elm-route
-
-A route parsing library for Elm. See the documentation of the `Route`
-module for more information.
-
-## See also
-
-[elm-route-parser][erp]: An alternative approach to route parsing.
-
-## Example
-
-Define your routes:
-
-```
-module App.Routes ( AdminSitemap(..), Sitemap(..), match, route ) where
+module Routes ( AdminSitemap(..), Sitemap(..), match, route ) where
 
 import Route exposing (..)
 
@@ -63,42 +49,3 @@ route r =
     UserPostsR id -> reverse userPostsR [toString id]
     UserPostR (uid, pid) -> reverse userPostR [toString uid, pid]
     AdminR r -> routeAdmin r
-```
-
-Then use them:
-
-    > import App.Routes exposing (..)
-
-    > match "/"
-    Just (HomeR ()) : Maybe.Maybe App.Routes.Sitemap
-
-    > match "/"
-    Just (HomeR ()) : Maybe.Maybe App.Routes.Sitemap
-
-    > match "/users"
-    Just (UsersR ()) : Maybe.Maybe App.Routes.Sitemap
-
-    > match "/i-dont-exist"
-    Nothing : Maybe.Maybe App.Routes.Sitemap
-
-    > match "/users/1"
-    Just (UserR 1) : Maybe.Maybe App.Routes.Sitemap
-
-    > match "/admin/users/1"
-    Just (AdminR (AdminUserR 1)) : Maybe.Maybe App.Routes.Sitemap
-
-    > route (HomeR ())
-    "/" : String
-
-    > route (AboutR ())
-    "/about" : String
-
-    > route (UserPostR (1, "hello"))
-    "/users/1/hello" : String
-
-    > route (AdminR (AdminUserR 1))
-    "/admin/users/1" : String
-
-See the `examples` directory and `tests/Test.elm` for more.
-
-[erp]: https://github.com/etaque/elm-route-parser
