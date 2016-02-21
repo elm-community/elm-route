@@ -1,11 +1,14 @@
 # elm-route
 
+[![Build Status](https://travis-ci.org/Bogdanp/elm-route.svg)](https://travis-ci.org/Bogdanp/elm-combine)
+
+```shell
+elm package install Bogdanp/elm-route
+```
+
 A route parsing library for Elm. See the documentation of the `Route`
-module for more information.
-
-## See also
-
-[elm-route-parser][erp]: An alternative approach to route parsing.
+module for more information. See also [elm-route-parser][erp] for an
+alternative approach to route parsing.
 
 ## Example
 
