@@ -12656,7 +12656,7 @@ Elm.Update.make = function (_elm) {
    $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var pathPrefix = "/elm-router";
+   var pathPrefix = "/elm-route";
    var UpdatePath = function (a) {
       return {ctor: "UpdatePath",_0: a};
    };
