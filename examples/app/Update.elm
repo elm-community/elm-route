@@ -12,7 +12,6 @@ type Page
   | Posts (List Data.Post)
   | Post Data.Post
   | About
-  | Loading
   | NotFound
 
 type alias Model
@@ -35,6 +34,12 @@ routeToPage r =
         |> Maybe.withDefault NotFound
     AboutR () -> About
 
+pathToPage : String -> Page
+pathToPage p =
+  case Routes.match p of
+    Nothing -> NotFound
+    Just r -> routeToPage r
+
 update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
@@ -42,13 +47,7 @@ update action model =
       (model, none)
 
     PathChange p ->
-      let
-        page =
-          case Routes.match p of
-            Nothing -> NotFound
-            Just route -> routeToPage route
-      in
-        ({ page = page }, none)
+      ({ page = pathToPage p }, none)
 
     UpdatePath r ->
       ( model
@@ -61,6 +60,4 @@ update action model =
 
 init : String -> (Model, Effects Action)
 init path =
-  ( { page = Loading }
-  , PathChange path |> Task.succeed |> Effects.task
-  )
+  ( { page = pathToPage path }, none )
