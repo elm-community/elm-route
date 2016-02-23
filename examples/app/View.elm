@@ -14,6 +14,9 @@ type alias Linker
 notFound : Html
 notFound = h1 [] [ text "Page not found" ]
 
+loading : Html
+loading = h1 [] [ text "Loading" ]
+
 home : Linker -> Html
 home link =
   div [] [ h1 [] [ text "Home Page" ]
@@ -58,5 +61,6 @@ view address model =
           Posts ps -> posts link ps
           Post p -> post p
           About -> about
+          Loading -> loading
           NotFound -> notFound
       ]

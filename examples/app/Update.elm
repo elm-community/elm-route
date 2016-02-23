@@ -12,6 +12,7 @@ type Page
   | Posts (List Data.Post)
   | Post Data.Post
   | About
+  | Loading
   | NotFound
 
 type alias Model
@@ -60,6 +61,6 @@ update action model =
 
 init : String -> (Model, Effects Action)
 init path =
-  ( { page = Home }
+  ( { page = Loading }
   , PathChange path |> Task.succeed |> Effects.task
   )
