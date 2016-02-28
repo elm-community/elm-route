@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "summary": "a route parser",
+    "summary": "A route parsing library",
     "repository": "https://github.com/Bogdanp/elm-route.git",
     "license": "BSD3",
     "source-directories": [
