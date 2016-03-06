@@ -7,7 +7,7 @@ for routing. To run it locally do the following after cloning the
 repository:
 
 ``` shell
-$ elm make Main.html --output=elm.js
+$ elm make Main.elm --output=elm.js
 $ python3 server.py
 ```
 
