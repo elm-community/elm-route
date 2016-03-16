@@ -1,10 +1,9 @@
 # Example app
 
 This is a simple example demonstrating client-side routing using the
-`elm-route` parser. This is similar to the `app` example except that
-it uses `elm-history`'s `hash` signal rather than its `path` signal
-for routing. To run it locally do the following after cloning the
-repository:
+`elm-route` parser. This builds upon the `app` example by adding query
+string parsing into the mix. To run it locally do the following after
+cloning the repository:
 
 ``` shell
 $ elm make Main.elm --output=elm.js
