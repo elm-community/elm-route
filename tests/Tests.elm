@@ -7,6 +7,8 @@ import Combine.Infix exposing ((<$))
 import Route exposing (..)
 import String
 
+import ReuseTests
+
 
 type Sitemap
   = Home ()
@@ -176,4 +178,4 @@ rendering =
 
 all : Test
 all =
-  suite "Tests" [ matching, reversing, rendering ]
+  suite "Tests" [ matching, reversing, rendering, ReuseTests.all ]
