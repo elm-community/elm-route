@@ -1,4 +1,4 @@
-module Custom where
+module Custom exposing ( .. )
 
 import Combine exposing (..)
 import Combine.Infix exposing (..)
@@ -37,4 +37,4 @@ sitemap = router [categoryR]
 route : Sitemap -> String
 route r =
   case r of
-    CategoryR c = reverse categoryR [show c]
+    CategoryR c -> reverse categoryR [show c]

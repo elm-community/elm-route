@@ -1,4 +1,4 @@
-module Tests where
+module Tests exposing ( .. )
 
 import ElmTest exposing (..)
 
@@ -179,3 +179,7 @@ rendering =
 all : Test
 all =
   suite "Tests" [ matching, reversing, rendering, ReuseTests.all ]
+
+
+main =
+  runSuite all

@@ -1,8 +1,8 @@
-module Route ( Router, Route
-             , router, match, reverse, route, child
-             , prefix, suffix, and, static, custom, string, int
-             , (:=), (<//>), (</>), (<>)
-             ) where
+module Route exposing ( Router, Route
+                      , router, match, reverse, route, child
+                      , prefix, suffix, and, static, custom, string, int
+                      , (:=), (<//>), (</>), (<>)
+                      )
 
 {-| This module exposes combinators for creating route parsers.
 

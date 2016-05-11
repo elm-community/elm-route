@@ -1,4 +1,4 @@
-module Routes ( AdminSitemap(..), Sitemap(..), match, route ) where
+module Routes exposing ( AdminSitemap(..), Sitemap(..), match, route )
 
 import Route exposing (..)
 

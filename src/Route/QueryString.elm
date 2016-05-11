@@ -1,9 +1,9 @@
-module Route.QueryString ( QueryString
-                         , parse, empty
-                         , render, add, remove, filter
-                         , all, one, many
-                         , string, int
-                         ) where
+module Route.QueryString exposing ( QueryString
+                                  , parse, empty
+                                  , render, add, remove, filter
+                                  , all, one, many
+                                  , string, int
+                                  )
 
 {-| This module exposes functions for working with query strings.
 
