@@ -1,5 +1,11 @@
 # elm-route changelog
 
+## elm-route 2.0.1 (2016-05-11)
+
+### Changes
+
+* Upgraded to Elm 0.17
+
 ## elm-route 2.0.0 (2016-03-20)
 
 ### Changes
