@@ -1,4 +1,4 @@
-# elm-route
+# elm-route [![Build Status](https://travis-ci.org/Bogdanp/elm-route.svg)](https://travis-ci.org/Bogdanp/elm-route)
 
 ``` shell
 elm package install Bogdanp/elm-route
