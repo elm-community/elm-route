@@ -1,18 +1,35 @@
-module Data ( Post, posts, lookupPost ) where
+module Data exposing (Post, fetchPosts, lookupPost)
 
-type alias Post
-  = { id : Int
+import Http
+import Json.Decode as Json exposing ((:=), Decoder, int, string)
+import Task exposing (Task)
+
+
+type alias Post =
+    { id : Int
     , title : String
     , body : String
     }
 
-posts : List Post
-posts =
-  [ { id = 1, title = "First Post", body = "This is the first post" }
-  , { id = 2, title = "Second Post", body = "This is the second post" }
-  ]
 
-lookupPost : Int -> Maybe Post
-lookupPost id =
-  List.filter (\p -> p.id == id) posts
-    |> List.head
+lookupPost : Int -> List Post -> Maybe Post
+lookupPost id posts =
+    List.filter (\p -> p.id == id) posts
+        |> List.head
+
+
+posts : Decoder (List Post)
+posts =
+    let
+        post =
+            Json.object3 Post
+                ("id" := int)
+                ("title" := string)
+                ("body" := string)
+    in
+        Json.list post
+
+
+fetchPosts : Task Http.Error (List Post)
+fetchPosts =
+    Http.get posts "/api/posts"

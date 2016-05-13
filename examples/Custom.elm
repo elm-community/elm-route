@@ -1,40 +1,59 @@
-module Custom exposing ( .. )
+module Custom exposing (Category(..), Sitemap(..), match, route)
+
+{-| This module demonstrates how you can use custom parsers to parse
+paths.  This example parses routes like `/categories/snippet` and
+`/categories/post` into `CategoryR Snippet` and `CategoryR Post`,
+respectively.
+-}
 
 import Combine exposing (..)
 import Combine.Infix exposing (..)
 import Route exposing (..)
 
--- Parser
--- ~~~~~~
 
 type Category
-  = Snippet
-  | Post
+    = Snippet
+    | Post
+
 
 category : Parser Category
-category = choice [ Snippet <$ Combine.string "snippet"
-                  , Post <$ Combine.string "post"
-                  ]
+category =
+    choice
+        [ Snippet <$ Combine.string "snippet"
+        , Post <$ Combine.string "post"
+        ]
+
 
 show : Category -> String
 show c =
-  case c of
-    Snippet -> "snippet"
-    Post -> "post"
+    case c of
+        Snippet ->
+            "snippet"
 
+        Post ->
+            "post"
 
--- Router
--- ~~~~~~
 
 type Sitemap
-  = CategoryR Category
+    = CategoryR Category
 
-categoryR = CategoryR := "categories" <//> custom category
+
+categoryR =
+    CategoryR := "categories" <//> custom category
+
 
 sitemap : Router Sitemap
-sitemap = router [categoryR]
+sitemap =
+    router [ categoryR ]
+
+
+match : String -> Maybe Sitemap
+match =
+    Route.match sitemap
+
 
 route : Sitemap -> String
 route r =
-  case r of
-    CategoryR c -> reverse categoryR [show c]
+    case r of
+        CategoryR c ->
+            reverse categoryR [ show c ]

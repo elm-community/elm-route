@@ -1,63 +1,79 @@
-module Update ( Action(..), Page(..), Model, init, update )  where
+module Update exposing (Flags, Msg(..), Model, init, update)
 
-import History
-import Effects exposing (Effects, none)
+import Data exposing (Post, fetchPosts)
+import Http
+import Routes exposing (Sitemap(..))
+import Ports exposing (pushPath)
 import Task
 
-import Data
-import Routes exposing (Sitemap(..))
 
-type Page
-  = Home
-  | Posts (List Data.Post)
-  | Post Data.Post
-  | About
-  | NotFound
-
-type alias Model
-  = { page : Page
+type alias Flags =
+    { path : String
     }
 
-type Action
-  = NoOp
-  | PathChange String
-  | UpdatePath Sitemap
 
-routeToPage : Sitemap -> Page
-routeToPage r =
-  case r of
-    HomeR () -> Home
-    PostsR () -> Posts Data.posts
-    PostR id ->
-      Data.lookupPost id
-        |> Maybe.map Post
-        |> Maybe.withDefault NotFound
-    AboutR () -> About
+type alias Model =
+    { route : Sitemap
+    , ready : Bool
+    , posts : List Post
+    , post : Maybe Post
+    , error : Maybe String
+    }
 
-pathToPage : String -> Page
-pathToPage p =
-  case Routes.match p of
-    Nothing -> NotFound
-    Just r -> routeToPage r
 
-update : Action -> Model -> (Model, Effects Action)
-update action model =
-  case action of
-    NoOp ->
-      (model, none)
+type Msg
+    = PathChanged String
+    | PushPath Sitemap
+    | FetchError Http.Error
+    | FetchSuccess (List Post)
 
-    PathChange p ->
-      ({ page = pathToPage p }, none)
 
-    UpdatePath r ->
-      ( model
-      , Routes.route r
-          |> History.setPath
-          |> Task.toMaybe
-          |> Task.map (always NoOp)
-          |> Effects.task
-      )
+handleRoute : Model -> ( Model, Cmd Msg )
+handleRoute ({ route, ready } as model) =
+    let
+        fetchPosts =
+            Data.fetchPosts
+                |> Task.perform FetchError FetchSuccess
+    in
+        case model.route of
+            PostsR () ->
+                if ready then
+                    ( model, Cmd.none )
+                else
+                    ( model, fetchPosts )
 
-init : String -> (Model, Effects Action)
-init path =
-  ( { page = pathToPage path }, none )
+            PostR id ->
+                if ready then
+                    ( { model | post = Data.lookupPost id model.posts }, Cmd.none )
+                else
+                    ( model, fetchPosts )
+
+            _ ->
+                ( model, Cmd.none )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        PathChanged path ->
+            handleRoute { model | route = Routes.match path }
+
+        PushPath route ->
+            ( model, pushPath (Routes.route route) )
+
+        FetchError error ->
+            ( { model | error = Just (toString error) }, Cmd.none )
+
+        FetchSuccess posts ->
+            handleRoute { model | ready = True, posts = posts }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init { path } =
+    handleRoute
+        { route = Routes.match path
+        , ready = False
+        , posts = []
+        , post = Nothing
+        , error = Nothing
+        }

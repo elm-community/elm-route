@@ -1,27 +1,18 @@
-module Main (main) where
+module Main exposing (main)
 
-import History
-import Html exposing (Html)
-import Effects exposing (Effects, Never)
-import StartApp exposing (start)
-import Task exposing (Task)
-
-import Update
+import Html.App as Html
+import Ports exposing (path)
+import Update exposing (Flags, Msg(..))
 import View
 
-app : StartApp.App Update.Model
-app =
-  start { init = Update.init path
-        , view = View.view
-        , update = Update.update
-        , inputs = [ Signal.map Update.PathChange History.path ]
-        }
 
-main : Signal Html
+main : Program Flags
 main =
-  app.html
-
-port tasks : Signal (Task Never ())
-port tasks = app.tasks
-
-port path : String
+    Html.programWithFlags
+        { init = Update.init
+        , update = Update.update
+        , view = View.view
+        , subscriptions =
+            \_ ->
+                Sub.batch [ path PathChanged ]
+        }

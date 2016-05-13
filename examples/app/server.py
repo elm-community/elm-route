@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from time import sleep
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -12,6 +13,9 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(f.read())
 
     def do_GET(self):
+        if self.path == "/api/posts":
+            sleep(1)
+            return self.serve_file("posts.json", "application/json")
         if self.path == "/elm.js":
             return self.serve_file("elm.js", "application/javascript")
         return self.serve_file("index.html")
