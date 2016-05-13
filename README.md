@@ -4,20 +4,19 @@
 elm package install Bogdanp/elm-route
 ```
 
-This library contains a set of combinators for building route parsers.
-See the documentation of the [Route](src/Route.elm) module for more
-information.  See also [elm-route-parser][erp] for an alternative
-approach to route parsing.
+This library defines functions for constructing route parsers.  See
+the documentation of the [Route](src/Route.elm) module for more
+information.
 
-This library is meant to be used in conjuction with a library such as
-[elm-history][eh].
+See also [elm-route-parser][erp] for an alternative approach to route
+parsing.
 
 ## Usage
 
 First define your routes:
 
 ```elm
-module App.Routes ( AdminSitemap(..), Sitemap(..), match, route ) where
+module App.Routes exposing ( AdminSitemap(..), Sitemap(..), match, route )
 
 import Route exposing (..)
 
@@ -88,8 +87,7 @@ Or to render routes:
 "/users/1/hello" : String
 ```
 
-See the `examples` directory and `tests/Test.elm` for more.
+See the `examples` directory and `tests/Tests.elm` for more.
 
 
-[eh]: https://github.com/elm-community/elm-history
 [erp]: https://github.com/etaque/elm-route-parser
