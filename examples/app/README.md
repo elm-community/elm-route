@@ -5,7 +5,7 @@ This is a simple example demonstrating client-side routing using the
 the repository:
 
 ``` shell
-$ elm make Main.elm --output=elm.js
+$ elm make src/Main.elm --output=elm.js
 $ python3 server.py
 ```
 
