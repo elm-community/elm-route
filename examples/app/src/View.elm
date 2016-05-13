@@ -18,7 +18,7 @@ home : Html Msg
 home =
     div []
         [ h1 [] [ text "Home Page" ]
-        , p [] [ link (Routes.PostR 123) "This post does not exist" ]
+        , p [] [ link (PostR 123) "This post does not exist" ]
         ]
 
 
@@ -44,7 +44,7 @@ posts : List Data.Post -> Html Msg
 posts posts =
     let
         postLink post =
-            li [] [ link (Routes.PostR post.id) post.title ]
+            li [] [ link (PostR post.id) post.title ]
     in
         div []
             [ h1 [] [ text "Posts" ]
@@ -90,7 +90,7 @@ view model =
 
 
 link : Sitemap -> String -> Html Msg
-link route content =
+link route label =
     let
         opts =
             { preventDefault = True
@@ -101,4 +101,4 @@ link route content =
             [ href (Routes.route route)
             , onWithOptions "click" opts (Json.succeed <| RouteTo route)
             ]
-            [ text content ]
+            [ text label ]
