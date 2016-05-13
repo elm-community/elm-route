@@ -90,5 +90,5 @@ view model =
 
 link : Sitemap -> String -> Html Msg
 link route content =
-    a [ href "javascript:;", onClick (PushPath route) ]
+    a [ href "javascript:;", onClick (RouteTo route) ]
         [ text content ]

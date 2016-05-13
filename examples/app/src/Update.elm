@@ -23,7 +23,7 @@ type alias Model =
 
 type Msg
     = PathChanged String
-    | PushPath Sitemap
+    | RouteTo Sitemap
     | FetchError Http.Error
     | FetchSuccess (List Post)
 
@@ -57,7 +57,7 @@ update msg model =
         PathChanged path ->
             handleRoute { model | route = Routes.match path }
 
-        PushPath route ->
+        RouteTo route ->
             ( model, pushPath (Routes.route route) )
 
         FetchError error ->
