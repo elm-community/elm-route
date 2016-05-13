@@ -32,10 +32,9 @@ handleRoute : Model -> ( Model, Cmd Msg )
 handleRoute ({ route, ready } as model) =
     let
         fetchPosts =
-            Data.fetchPosts
-                |> Task.perform FetchError FetchSuccess
+            Task.perform FetchError FetchSuccess Data.fetchPosts
     in
-        case model.route of
+        case route of
             PostsR () ->
                 if ready then
                     ( model, Cmd.none )
@@ -65,7 +64,7 @@ update msg model =
             ( { model | error = Just (toString error) }, Cmd.none )
 
         FetchSuccess posts ->
-            handleRoute { model | ready = True, posts = posts }
+            handleRoute { model | ready = True, error = Nothing, posts = posts }
 
 
 init : Flags -> ( Model, Cmd Msg )
