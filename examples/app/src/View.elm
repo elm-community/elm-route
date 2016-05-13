@@ -2,7 +2,8 @@ module View exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (href)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onWithOptions)
+import Json.Decode as Json
 import Data
 import Routes exposing (Sitemap(..))
 import Update exposing (Msg(..), Model)
@@ -90,5 +91,14 @@ view model =
 
 link : Sitemap -> String -> Html Msg
 link route content =
-    a [ href "javascript:;", onClick (RouteTo route) ]
-        [ text content ]
+    let
+        opts =
+            { preventDefault = True
+            , stopPropagation = False
+            }
+    in
+        a
+            [ href (Routes.route route)
+            , onWithOptions "click" opts (Json.succeed <| RouteTo route)
+            ]
+            [ text content ]
