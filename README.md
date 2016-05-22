@@ -5,8 +5,8 @@ elm package install Bogdanp/elm-route
 ```
 
 This library defines functions for constructing route parsers.  See
-the documentation of the [Route](src/Route.elm) module for more
-information.  A full example is available at `examples/app`.
+the documentation of the [Route][route] module for more information.
+A full example is available at `examples/app`.
 
 See also [elm-route-parser][erp] for an alternative approach to route
 parsing.
@@ -91,3 +91,4 @@ See the `examples` directory and `tests/Tests.elm` for more.
 
 
 [erp]: https://github.com/etaque/elm-route-parser
+[route]: http://package.elm-lang.org/packages/Bogdanp/elm-route/latest/Route
