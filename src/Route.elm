@@ -39,10 +39,7 @@ type Route a
           , components : List Component
           }
 
-unroute r =
-  case r of
-    Route rc ->
-      rc
+unroute (Route r) = r
 
 parser     = unroute >> .parser
 components = unroute >> .components
@@ -55,13 +52,6 @@ components = unroute >> .components
  -}
 type Router a
   = Router (Parser a)
-
-
-unrouter : Router a -> Parser a
-unrouter r =
-  case r of
-    Router p ->
-      p
 
 
 {-| Declare a Route.
@@ -371,8 +361,8 @@ See `examples/Reuse.elm` for a more advanced use case of this.
 
  -}
 child : (a -> b) -> Router a -> Route b
-child f r =
-  Route { parser = f <$> unrouter r
+child f (Router r) =
+  Route { parser = f <$> r
         , components = []
         }
 
@@ -408,10 +398,10 @@ function will return the first Route that matches that path.
 
  -}
 match : Router a -> String -> Maybe a
-match r path =
+match (Router r) path =
   case String.uncons path of
     Just ('/', path) ->
-      Combine.parse (unrouter r) path
+      Combine.parse r path
         |> Result.toMaybe << fst
 
     _ ->
