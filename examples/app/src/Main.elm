@@ -1,18 +1,16 @@
 module Main exposing (main)
 
-import Html.App as Html
-import Ports exposing (path)
-import Update exposing (Flags, Msg(..))
+import Navigation
+import Update exposing (Msg(..), pathParser)
 import View
 
 
-main : Program Flags
+main : Program Never
 main =
-    Html.programWithFlags
+    Navigation.program (Navigation.makeParser pathParser)
         { init = Update.init
         , update = Update.update
+        , urlUpdate = Update.urlUpdate
         , view = View.view
-        , subscriptions =
-            \_ ->
-                Sub.batch [ path PathChanged ]
+        , subscriptions = \_ -> Sub.batch []
         }

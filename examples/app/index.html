@@ -4,17 +4,6 @@
     <script src="/elm.js"></script>
   </head>
   <body>
-    <script>
-      var app = Elm.Main.fullscreen({path: window.location.pathname});
-
-      window.onpopstate = function(event) {
-        app.ports.path.send(window.location.pathname);
-      };
-
-      app.ports.pushPath.subscribe(function(path) {
-        window.history.pushState({}, "", path);
-        app.ports.path.send(window.location.pathname);
-      });
-    </script>
+    <script>Elm.Main.fullscreen();</script>
   </body>
 </html>
