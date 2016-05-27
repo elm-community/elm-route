@@ -1,4 +1,4 @@
-module Update exposing (Msg(..), Model, pathParser, init, update, urlUpdate)
+module Update exposing (Msg(..), Model, init, update, urlUpdate)
 
 import Data exposing (Post, fetchPosts)
 import Http
@@ -22,11 +22,6 @@ type Msg
     | FetchSuccess (List Post)
 
 
-pathParser : Location -> Sitemap
-pathParser location =
-    Routes.match location.pathname
-
-
 init : Sitemap -> ( Model, Cmd Msg )
 init route =
     urlUpdate route
@@ -42,7 +37,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ route } as model) =
     case msg of
         RouteTo route ->
-            model ! [ Navigation.newUrl (Routes.route route) ]
+            model ! [ Routes.navigateTo route ]
 
         FetchError error ->
             { model | error = Just (toString error) } ! []

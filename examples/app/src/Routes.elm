@@ -1,5 +1,6 @@
-module Routes exposing (Sitemap(..), match, route)
+module Routes exposing (Sitemap(..), parsePath, navigateTo, toString)
 
+import Navigation exposing (Location)
 import Route exposing (..)
 
 
@@ -37,8 +38,8 @@ match =
         >> Maybe.withDefault NotFoundR
 
 
-route : Sitemap -> String
-route r =
+toString : Sitemap -> String
+toString r =
     case r of
         HomeR () ->
             reverse homeR []
@@ -47,10 +48,20 @@ route r =
             reverse postsR []
 
         PostR id ->
-            reverse postR [ toString id ]
+            reverse postR [ Basics.toString id ]
 
         AboutR () ->
             reverse aboutR []
 
         NotFoundR ->
-            Debug.crash "cannot route to NotFound"
+            Debug.crash "cannot render NotFound"
+
+
+parsePath : Location -> Sitemap
+parsePath =
+    .pathname >> match
+
+
+navigateTo : Sitemap -> Cmd msg
+navigateTo =
+    toString >> Navigation.newUrl

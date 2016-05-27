@@ -98,7 +98,7 @@ link route label =
             }
     in
         a
-            [ href (Routes.route route)
+            [ href (Routes.toString route)
             , onWithOptions "click" opts (Json.succeed <| RouteTo route)
             ]
             [ text label ]

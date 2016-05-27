@@ -1,13 +1,14 @@
 module Main exposing (main)
 
 import Navigation
-import Update exposing (Msg(..), pathParser)
+import Routes
+import Update
 import View
 
 
 main : Program Never
 main =
-    Navigation.program (Navigation.makeParser pathParser)
+    Navigation.program (Navigation.makeParser Routes.parsePath)
         { init = Update.init
         , update = Update.update
         , urlUpdate = Update.urlUpdate
