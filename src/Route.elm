@@ -1,18 +1,30 @@
-module Route exposing ( Router, Route
-                      , router, match, reverse, route, child
-                      , prefix, suffix, and, static, custom, string, int
-                      , (:=), (<//>), (</>), (<>)
-                      )
+module Route
+    exposing
+        ( Router
+        , Route
+        , route
+        , (:=)
+        , router
+        , match
+        , reverse
+        , static
+        , custom
+        , string
+        , int
+        , and
+        , (</>)
+        , map
+        )
 
 {-| This module exposes combinators for creating route parsers.
 
 @docs Route, Router
 
 ## Routing
-@docs route, (:=), router, child, match, reverse
+@docs route, (:=), router, match, reverse
 
 ## Route combinators
-@docs prefix, (<//>), and, (</>), suffix, (<>), static, custom, string, int
+@docs static, custom, string, int, and, (</>), map
 -}
 
 import Combine exposing (Parser)
@@ -22,50 +34,57 @@ import String
 
 
 type Component
-  = CPrefix String
-  | CSuffix String
-  | CCustom (String -> Result String ())
-  | CString
-  | CInt
-
+    = CStatic String
+    | CCustom (String -> Result String ())
+    | CString
+    | CInt
 
 
 {-| Routes represent concrete parsers for paths. Routes can be combined
 and they keep track of their path components in order to provide
 automatic reverse routing.
- -}
-type Route a
-  = Route { parser : Parser a
-          , components : List Component
-          }
+-}
+type Route res
+    = Route
+        { parser : Parser res
+        , components : List Component
+        }
 
-unroute (Route r) = r
 
-parser     = unroute >> .parser
-components = unroute >> .components
+unroute (Route r) =
+    r
+
+
+parser =
+    unroute >> .parser
+
+
+components =
+    unroute >> .components
 
 
 {-| A Router is, at its core, a List of Routes.
 
     sitemap = router [routeA, routeB]
 
- -}
+-}
 type Router a
-  = Router (Parser a)
+    = Router (Parser a)
 
 
 {-| Declare a Route.
 
     type Sitemap
-      = HomeR ()
+      = HomeR
 
     homeR : Route Sitemap
     homeR = route HomeR (static "")
 
- -}
-route : (a -> res) -> Route a -> Route res
-route f r =
-  Route { parser = f <$> parser r
+-}
+route : a -> Route (a -> b) -> Route b
+route x r =
+    Route
+        { parser = parser r `Combine.andThen` (\f -> Combine.succeed <| f x)
         , components = components r
         }
 
@@ -73,173 +92,53 @@ route f r =
 {-| A synonym for `route`.
 
     type Sitemap
-      = HomeR ()
+      = HomeR
 
     homeR : Route Sitemap
     homeR = HomeR := static ""
 
- -}
-(:=) : (a -> res) -> Route a -> Route res
-(:=) = route
+-}
+(:=) : a -> Route (a -> b) -> Route b
+(:=) =
+    route
+infixl 7 :=
 
 
 {-| Construct a Router from a list of Routes.
 
     type Sitemap
-      = HomeR ()
-      | BlogR ()
+      = HomeR
+      | BlogR
 
     homeR = HomeR := static ""
     blogR = BlogR := static "blog"
     sitemap = router [homeR, blogR]
 
- -}
+-}
 router : List (Route a) -> Router a
 router rs =
-  List.map (\r -> parser r <* Combine.end) rs
-    |> Combine.choice
-    |> Router
-
-
-{-| Prefix a `Route` with a string.
-
-    type Sitemap
-      = UserR Int
-
-    userR = UserR := prefix "users" int
-    sitemap = router [userR]
-
-    > match sitemap "/users/"
-    Nothing : Maybe.Maybe Sitemap
-
-    > match sitemap "/users/1"
-    Just (UserR 1) : Maybe.Maybe Sitemap
-
- -}
-prefix : String -> Route res -> Route res
-prefix s r =
-  Route { parser = Combine.string (s ++ "/") *> parser r
-        , components = [CPrefix s] ++ components r
-        }
-
-
-{-| A synonym for `prefix`.
-
-    type Sitemap
-      = UserR Int
-
-    userR = UserR := "users" <//> int
-    sitemap = router [userR]
-
-    > match sitemap "/users/"
-    Nothing : Maybe.Maybe Sitemap
-
-    > match sitemap "/users/1"
-    Just (UserR 1) : Maybe.Maybe Sitemap
-
- -}
-(<//>) : String -> Route res -> Route res
-(<//>) = prefix
-
-
-{-| Suffix a `Route` with a string. This can be used in place
-of `static` when there are static path components at the end of a
-path.
-
-    type Sitemap
-      = UserEmailsR Int
-      = UserEmailsR' (Int, ())
-
-    userEmailsR = UserEmailsR := suffix "emails" (prefix "users" int)
-    userEmailsR' = UserEmailsR' := prefix "users" int `and` static "emails-static"
-    sitemap = router [userEmailsR, userEmailsR']
-
-    > match sitemap "/users/1/emails"
-    Just (UserEmailsR 1) : Maybe.Maybe Sitemap
-
-    > match sitemap "/users/1/emails-static"
-    Just (UserEmailsR' (1,())) : Maybe.Maybe Sitemap
-
- -}
-suffix : String -> Route res -> Route res
-suffix s r =
-  Route { parser = parser r <* Combine.string ("/" ++ s)
-        , components = components r ++ [CSuffix s]
-        }
-
-
-{-| A synonym for `suffix`.
-
-    type Sitemap
-      = UserEmailsR Int
-      = UserEmailsR' (Int, ())
-
-    userEmailsR = UserEmailsR := "users" <//> int <> "emails"
-    userEmailsR' = UserEmailsR' := "users" <//> int </> static "emails"
-    sitemap = router [userEmailsR, userEmailsR']
-
-    > match sitemap "/users/1/emails"
-    Just (UserEmailsR 1) : Maybe.Maybe Sitemap
-
-    > match sitemap "/users/1/emails-static"
-    Just (UserEmailsR' (1,())) : Maybe.Maybe Sitemap
-
- -}
-(<>) : Route res -> String -> Route res
-(<>) = flip suffix
-
-
-{-| Compose two Routes.
-
-    type Sitemap
-      = AddR (Int, Int)
-
-    addR = AddR := int `and` int
-    sitemap = router [addR]
-
-    > match sitemap "/1/2"
-    Just (AddR (1,2)) : Maybe.Maybe Sitemap
-
- -}
-and : Route a -> Route b -> Route (a, b)
-and lr rr =
-  Route { parser = (,) <$> (parser lr <* Combine.string "/") <*> parser rr
-        , components = components lr ++ components rr
-        }
-
-
-{-| A synonym for `and`.
-
-    type Sitemap
-      = AddR (Int, Int)
-
-    addR = AddR := int </> int
-    sitemap = router [addR]
-
-    > match sitemap "/1/2"
-    Just (AddR (1,2)) : Maybe.Maybe Sitemap
-
- -}
-(</>) : Route a -> Route b -> Route (a, b)
-(</>) = and
+    List.map (\r -> parser r <* Combine.end) rs
+        |> Combine.choice
+        |> Router
 
 
 {-| Create a Route that matches a static String.
 
     type Sitemap
-      = BlogR ()
+      = BlogR
 
     blogR = BlogR := static "blog"
     sitemap = router [blogR]
 
     > match sitemap "/blog"
-    Just (BlogR ()) : Maybe.Maybe Sitemap
+    Just BlogR : Maybe.Maybe Sitemap
 
- -}
-static : String -> Route ()
+-}
+static : String -> Route (a -> a)
 static s =
-  Route { parser = () <$ Combine.string s
-        , components = [CPrefix s]
+    Route
+        { parser = always identity <$> Combine.string s
+        , components = [ CStatic s ]
         }
 
 
@@ -255,7 +154,7 @@ static s =
     type Sitemap
       = CategoryR Category
 
-    categoryR = CategoryR := "categories" <//> custom categoryParser
+    categoryR = CategoryR := static "categories" </> custom categoryParser
     sitemap = router [categoryR]
 
     > match sitemap "/categories/a"
@@ -269,21 +168,22 @@ static s =
 
 See `examples/Custom.elm` for a complete example.
 
- -}
-custom : Parser a -> Route a
+-}
+custom : Parser a -> Route ((a -> b) -> b)
 custom p =
-  let
-    validator s =
-      case Combine.parse p s of
-        (Ok _, _) ->
-          Ok ()
+    let
+        validator s =
+            case Combine.parse p s of
+                ( Ok _, _ ) ->
+                    Ok ()
 
-        (Err ms, _) ->
-          Err (String.join " or " ms)
-  in
-    Route { parser = p
-          , components = [CCustom validator]
-          }
+                ( Err ms, _ ) ->
+                    Err (String.join " or " ms)
+    in
+        Route
+            { parser = (\x f -> f x) <$> p
+            , components = [ CCustom validator ]
+            }
 
 
 {-| A Route that matches any string.
@@ -291,7 +191,7 @@ custom p =
     type Sitemap
       = PostR String
 
-    postR = PostR := "posts" <//> string
+    postR = PostR := "posts" </> string
     sitemap = router [postR]
 
     > match sitemap "/posts/"
@@ -303,11 +203,12 @@ custom p =
     > match sitemap "/posts/hello-world"
     Just (PostR "hello-world") : Maybe.Maybe Sitemap
 
- -}
-string : Route String
+-}
+string : Route ((String -> a) -> a)
 string =
-  Route { parser = Combine.regex "[^/]+"
-        , components = [CString]
+    Route
+        { parser = (\s f -> f s) <$> Combine.regex "[^/]+"
+        , components = [ CString ]
         }
 
 
@@ -316,7 +217,7 @@ string =
     type Sitemap
       = UserR Int
 
-    userR = UserR := "users" <//> int
+    userR = UserR := "users" </> int
     sitemap = router [userR]
 
     > match sitemap "/users/a"
@@ -328,67 +229,106 @@ string =
     > match sitemap "/users/-1"
     Just (UserR -1) : Maybe.Maybe Sitemap
 
- -}
-int : Route Int
+-}
+int : Route ((Int -> a) -> a)
 int =
-  Route { parser = Combine.Num.int
-        , components = [CInt]
+    Route
+        { parser = (\s f -> f s) <$> Combine.Num.int
+        , components = [ CInt ]
         }
 
 
-{-| Routers may be nested. This function is useful in situations
+{-| Compose two Routes.
+
+    type Sitemap
+      = AddR Int Int
+
+    addR = AddR := int `and` int
+    sitemap = router [addR]
+
+    > match sitemap "/1/2"
+    Just (AddR 1 2) : Maybe.Maybe Sitemap
+
+-}
+and : Route (a -> b) -> Route (b -> c) -> Route (a -> c)
+and l r =
+    Route
+        { parser = (>>) <$> (parser l <* Combine.string "/") <*> parser r
+        , components = components l ++ components r
+        }
+
+
+{-| A synonym for `and`.
+
+    type Sitemap
+      = AddR Int Int
+
+    addR = AddR := int </> int
+    sitemap = router [addR]
+
+    > match sitemap "/1/2"
+    Just (AddR 1 2) : Maybe.Maybe Sitemap
+
+-}
+(</>) : Route (a -> b) -> Route (b -> c) -> Route (a -> c)
+(</>) =
+    and
+infixl 8 </>
+
+
+{-| Routers may be maped. This function is useful in situations
 where you want to split your routes into multiple types while still
 maintaining a single top-level "site map".
 
     type AdminSitemap
-      = AdminHomeR ()
-      | AdminUsersR ()
+      = AdminHomeR
+      | AdminUsersR
 
     adminHomeR = AdminHomeR := static "admin"
-    adminUsersR = AdminHomeR := "admin" <//> static "users"
+    adminUsersR = AdminHomeR := static "admin/users"
     adminSitemap = router [adminHomeR, adminUsersR]
 
     type Sitemap
-      = HomeR ()
-      | BlogR ()
+      = HomeR
+      | BlogR
       | AdminR AdminSitemap
 
     homeR = HomeR := static ""
     blogR = BlogR := static "blog"
-    sitemap = router [homeR, blogR, child AdminR adminSitemap]
+    sitemap = router [homeR, blogR, map AdminR adminSitemap]
 
 See `examples/Reuse.elm` for a more advanced use case of this.
 
- -}
-child : (a -> b) -> Router a -> Route b
-child f (Router r) =
-  Route { parser = f <$> r
+-}
+map : (a -> b) -> Router a -> Route b
+map f (Router r) =
+    Route
+        { parser = f <$> r
         , components = []
         }
-
 
 
 {-| Given a Router and an arbitrary String representing a path, this
 function will return the first Route that matches that path.
 
     type Sitemap
-      = HomeR ()
-      | UsersR ()
+      = HomeR
+      | UsersR
       | UserR Int
 
     homeR = HomeR := static ""
     usersR = UsersR := static "users"
-    usersR = UserR := "users" <//> int
+    usersR = UserR := static "users" </> int
     sitemap = router [homeR, userR, usersR]
 
     > match siteMap "/a"
     Nothing : Maybe.Maybe Sitemap
 
     > match siteMap "/"
-    Just (HomeR ()) : Maybe.Maybe Sitemap
+    Just HomeR : Maybe.Maybe Sitemap
 
     > match siteMap "/users"
-    Just (UsersR ()) : Maybe.Maybe Sitemap
+    Just UsersR : Maybe.Maybe Sitemap
 
     > match siteMap "/users/1"
     Just (UserR 1) : Maybe.Maybe Sitemap
@@ -396,28 +336,29 @@ function will return the first Route that matches that path.
     > match siteMap "/users/1"
     Just (UserR 1) : Maybe.Maybe Sitemap
 
- -}
+-}
 match : Router a -> String -> Maybe a
 match (Router r) path =
-  case String.uncons path of
-    Just ('/', path) ->
-      Combine.parse r path
-        |> Result.toMaybe << fst
+    case String.uncons path of
+        Just ( '/', path ) ->
+            Combine.parse r path
+                |> Result.toMaybe
+                << fst
 
-    _ ->
-      Nothing
+        _ ->
+            Nothing
 
 
 {-| Render a path given a route and a list of route components.
 
     type Sitemap
-      = HomeR ()
-      | UsersR ()
+      = HomeR
+      | UsersR
       | UserR Int
 
     homeR = HomeR := static ""
     usersR = UsersR := static "users"
-    usersR = UserR := "users" <//> int
+    usersR = UserR := static "users" </> int
     sitemap = router [homeR, userR, usersR]
 
     > reverse homeR []
@@ -436,14 +377,14 @@ application:
     render : Sitemap -> String
     render r =
       case r of
-        HomeR () -> reverse homeR []
-        UsersR () -> reverse usersR []
+        HomeR  -> reverse homeR []
+        UsersR  -> reverse usersR []
         UserR uid -> reverse userR [toString uid]
 
-    > render (HomeR ())
+    > render HomeR
     "/"
 
-    > render (UsersR ())
+    > render UsersR
     "/users"
 
     > render (UserR 1)
@@ -476,47 +417,38 @@ route and the list of arguments that is passed in. For example:
 
         could not convert string 'a' to an Int in a call to 'reverse'
 
- -}
+-}
 reverse : Route a -> List String -> String
 reverse r inputs =
-  let
-    accumulate cs is xs =
-      case (is, xs) of
-        ([], []) ->
-          "/" ++ (String.join "/" (List.reverse cs))
+    let
+        accumulate cs is xs =
+            case ( is, xs ) of
+                ( [], [] ) ->
+                    "/" ++ (String.join "/" (List.reverse cs))
 
-        (_, CPrefix p :: xs) ->
-          accumulate (p :: cs) is xs
+                ( _, (CStatic c) :: xs ) ->
+                    accumulate (c :: cs) is xs
 
-        (_, CSuffix p :: xs) ->
-          accumulate (p :: cs) is xs
+                ( i :: is, (CCustom p) :: xs ) ->
+                    case p i of
+                        Ok _ ->
+                            accumulate (i :: cs) is xs
 
-        (i :: is, CCustom p :: xs) ->
-          case p i of
-            Ok _ ->
-              accumulate (i :: cs) is xs
+                        Err m ->
+                            Debug.crash (m ++ " in a call to 'reverse' but received '" ++ i ++ "'")
 
-            Err m ->
-              Debug.crash (m ++ " in a call to 'reverse' but received '" ++ i ++ "'")
+                ( i :: is, CString :: xs ) ->
+                    accumulate (i :: cs) is xs
 
-        (i :: is, CString :: xs) ->
-          accumulate (i :: cs) is xs
+                ( i :: is, CInt :: xs ) ->
+                    case String.toInt i of
+                        Ok _ ->
+                            accumulate (i :: cs) is xs
 
-        (i :: is, CInt :: xs) ->
-          case String.toInt i of
-            Ok _ ->
-              accumulate (i :: cs) is xs
+                        Err m ->
+                            Debug.crash m ++ " in a call to 'reverse'"
 
-            Err m ->
-              Debug.crash m ++ " in a call to 'reverse'"
-
-        _ ->
-          Debug.crash "'reverse' called with an unexpected number of arguments"
-  in
-    accumulate [] inputs (components r)
-
-
-infixl 7 :=
-infixr 9 <//>
-infixl 8 </>
-infixr 9 <>
+                _ ->
+                    Debug.crash "'reverse' called with an unexpected number of arguments"
+    in
+        accumulate [] inputs (components r)
