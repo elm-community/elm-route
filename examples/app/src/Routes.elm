@@ -5,10 +5,10 @@ import Route exposing (..)
 
 
 type Sitemap
-    = HomeR ()
-    | PostsR ()
+    = HomeR
+    | PostsR
     | PostR Int
-    | AboutR ()
+    | AboutR
     | NotFoundR
 
 
@@ -21,7 +21,7 @@ postsR =
 
 
 postR =
-    PostR := "posts" <//> int
+    PostR := static "posts" </> int
 
 
 aboutR =
@@ -41,16 +41,16 @@ match =
 toString : Sitemap -> String
 toString r =
     case r of
-        HomeR () ->
+        HomeR ->
             reverse homeR []
 
-        PostsR () ->
+        PostsR ->
             reverse postsR []
 
         PostR id ->
             reverse postR [ Basics.toString id ]
 
-        AboutR () ->
+        AboutR ->
             reverse aboutR []
 
         NotFoundR ->

@@ -1,28 +1,20 @@
 module Tests exposing (..)
 
-import ElmTest exposing (..)
 import Combine
 import Combine.Infix exposing ((<$))
+import ElmTest exposing (..)
 import Route exposing (..)
 import String
-import ReuseTests
 
 
 type Sitemap
-    = Home ()
-    | Users ()
+    = Home
+    | Users
     | User Int
     | UserEmails Int
-    | UserEmail ( Int, Int )
-    | Admin AdminArea
-    | Deep ( ( Int, Int ), Int )
+    | UserEmail Int Int
+    | Deep Int Int Int
     | Custom' Foo
-
-
-type AdminArea
-    = AdminHome ()
-    | AdminUsers ()
-    | AdminUser Int
 
 
 type Foo
@@ -37,26 +29,6 @@ fooP =
         ]
 
 
-adminHomeR : Route AdminArea
-adminHomeR =
-    AdminHome := static "admin"
-
-
-adminUsersR : Route AdminArea
-adminUsersR =
-    AdminUsers := static "admin" <> "users"
-
-
-adminUserR : Route AdminArea
-adminUserR =
-    AdminUser := "admin" <//> "users" <//> int
-
-
-adminRoutes : Router AdminArea
-adminRoutes =
-    router [ adminHomeR, adminUsersR, adminUserR ]
-
-
 homeR : Route Sitemap
 homeR =
     Home := static ""
@@ -69,27 +41,27 @@ usersR =
 
 userR : Route Sitemap
 userR =
-    User := "users" <//> int
+    User := static "users" </> int
 
 
 userEmailsR : Route Sitemap
 userEmailsR =
-    UserEmails := "users" <//> int <> "emails"
+    UserEmails := static "users" </> int </> static "emails"
 
 
 userEmailR : Route Sitemap
 userEmailR =
-    UserEmail := "users" <//> int </> "emails" <//> int
+    UserEmail := static "users" </> int </> static "emails" </> int
 
 
 deepR : Route Sitemap
 deepR =
-    Deep := "deep" <//> int </> int </> int
+    Deep := static "deep" </> int </> int </> int
 
 
 customR : Route Sitemap
 customR =
-    Custom' := "custom" <//> custom fooP
+    Custom' := static "custom" </> custom fooP
 
 
 siteMap : Router Sitemap
@@ -102,17 +74,16 @@ siteMap =
         , userEmailR
         , deepR
         , customR
-        , child Admin adminRoutes
         ]
 
 
 render : Sitemap -> String
 render r =
     case r of
-        Home _ ->
+        Home ->
             reverse homeR []
 
-        Users _ ->
+        Users ->
             reverse usersR []
 
         User id ->
@@ -121,76 +92,51 @@ render r =
         UserEmails id ->
             reverse userEmailsR [ toString id ]
 
-        UserEmail ( uid, eid ) ->
+        UserEmail uid eid ->
             reverse userEmailR [ toString uid, toString eid ]
 
-        Deep ( ( x, y ), z ) ->
+        Deep x y z ->
             reverse deepR [ toString x, toString y, toString z ]
 
         Custom' x ->
             reverse customR [ toString x ]
 
-        Admin r ->
-            renderAdmin r
-
-
-renderAdmin : AdminArea -> String
-renderAdmin r =
-    case r of
-        AdminHome _ ->
-            reverse adminHomeR []
-
-        AdminUsers _ ->
-            reverse adminUsersR []
-
-        AdminUser id ->
-            reverse adminUserR [ toString id ]
-
 
 matching : Test
 matching =
     suite "Matching"
-        [ test "Match home"
-            <| assertEqual (Just (Home ()))
+        [ test "Match home" <|
+            assertEqual (Just Home)
                 (match siteMap "/")
-        , test "Match users"
-            <| assertEqual (Just (Users ()))
+        , test "Match users" <|
+            assertEqual (Just Users)
                 (match siteMap "/users")
-        , test "Match user"
-            <| assertEqual (Just (User 1))
+        , test "Match user" <|
+            assertEqual (Just (User 1))
                 (match siteMap "/users/1")
-        , test "Fail user"
-            <| assertEqual Nothing
+        , test "Fail user" <|
+            assertEqual Nothing
                 (match siteMap "/users/a")
-        , test "Match user emails"
-            <| assertEqual (Just (UserEmails 1))
+        , test "Match user emails" <|
+            assertEqual (Just (UserEmails 1))
                 (match siteMap "/users/1/emails")
-        , test "Match user email"
-            <| assertEqual (Just (UserEmail ( 1, 1 )))
+        , test "Match user email" <|
+            assertEqual (Just (UserEmail 1 1))
                 (match siteMap "/users/1/emails/1")
-        , test "Match deep"
-            <| assertEqual (Just (Deep ( ( 1, 2 ), 3 )))
+        , test "Match deep" <|
+            assertEqual (Just (Deep 1 2 3))
                 (match siteMap "/deep/1/2/3")
-        , test "Match custom Foo"
-            <| assertEqual (Just (Custom' Foo))
+        , test "Match custom Foo" <|
+            assertEqual (Just (Custom' Foo))
                 (match siteMap "/custom/Foo")
-        , test "Match custom Bar"
-            <| assertEqual (Just (Custom' Bar))
+        , test "Match custom Bar" <|
+            assertEqual (Just (Custom' Bar))
                 (match siteMap "/custom/Bar")
-        , test "Fail custom"
-            <| assertEqual Nothing
+        , test "Fail custom" <|
+            assertEqual Nothing
                 (match siteMap "/custom/Baz")
-        , test "Match admin"
-            <| assertEqual (Just (Admin (AdminHome ())))
-                (match siteMap "/admin")
-        , test "Match admin users"
-            <| assertEqual (Just (Admin (AdminUsers ())))
-                (match siteMap "/admin/users")
-        , test "Match admin user"
-            <| assertEqual (Just (Admin (AdminUser 1)))
-                (match siteMap "/admin/users/1")
-        , test "Not found"
-            <| assertEqual Nothing
+        , test "Not found" <|
+            assertEqual Nothing
                 (match siteMap "/i-dont-exist")
         ]
 
@@ -207,19 +153,17 @@ reversing =
 rendering : Test
 rendering =
     suite "Reversing Safely"
-        [ test "Reverse home" (assertEqual "/" (render (Home ())))
-        , test "Reverse users" (assertEqual "/users" (render (Users ())))
+        [ test "Reverse home" (assertEqual "/" (render (Home)))
+        , test "Reverse users" (assertEqual "/users" (render (Users)))
         , test "Reverse user" (assertEqual "/users/1" (render (User 1)))
-        , test "Reverse deep" (assertEqual "/deep/1/2/3" (render (Deep ( ( 1, 2 ), 3 ))))
+        , test "Reverse deep" (assertEqual "/deep/1/2/3" (render (Deep 1 2 3)))
         , test "Reverse custom" (assertEqual "/custom/Foo" (render (Custom' Foo)))
-        , test "Reverse admin users" (assertEqual "/admin/users" (render (Admin (AdminUsers ()))))
-        , test "Reverse admin user" (assertEqual "/admin/users/1" (render (Admin (AdminUser 1))))
         ]
 
 
 all : Test
 all =
-    suite "Tests" [ matching, reversing, rendering, ReuseTests.all ]
+    suite "Tests" [ matching, reversing, rendering ]
 
 
 main =

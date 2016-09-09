@@ -21,19 +21,19 @@ module App.Routes exposing ( AdminSitemap(..), Sitemap(..), match, route )
 import Route exposing (..)
 
 type Sitemap
-  = HomeR ()
-  | AboutR ()
-  | UsersR ()
+  = HomeR
+  | AboutR
+  | UsersR
   | UserR Int
   | UserPostsR Int
-  | UserPostR (Int, String)
+  | UserPostR Int String
 
 homeR = HomeR := static ""
 aboutR = AboutR := static "about"
 usersR = UsersR := static "users"
-userR = UserR := "users" <//> int
-userPostsR = UserPostsR := "users" <//> int <> "posts"
-userPostR = UserPostR := "users" <//> int </> string
+userR = UserR := static "users" </> int
+userPostsR = UserPostsR := static "users" </> int </> "posts"
+userPostR = UserPostR := static "users" </> int </> string
 sitemap = router [homeR, aboutR, usersR, userR, userPostsR, userPostR]
 
 match : String -> Maybe Sitemap
@@ -42,12 +42,12 @@ match = Route.match sitemap
 route : Sitemap -> String
 route r =
   case r of
-    HomeR () -> reverse homeR []
-    AboutR () -> reverse aboutR []
-    UsersR () -> reverse usersR []
+    HomeR -> reverse homeR []
+    AboutR -> reverse aboutR []
+    UsersR -> reverse usersR []
     UserR id -> reverse userR [toString id]
     UserPostsR id -> reverse userPostsR [toString id]
-    UserPostR (uid, pid) -> reverse userPostR [toString uid, pid]
+    UserPostR uid pid -> reverse userPostR [toString uid, pid]
 ```
 
 You may then use them to match routes:
@@ -56,10 +56,10 @@ You may then use them to match routes:
 > import App.Routes exposing (..)
 
 > match "/"
-Just (HomeR ()) : Maybe.Maybe App.Routes.Sitemap
+Just HomeR : Maybe.Maybe App.Routes.Sitemap
 
 > match "/users"
-Just (UsersR ()) : Maybe.Maybe App.Routes.Sitemap
+Just UsersR  : Maybe.Maybe App.Routes.Sitemap
 
 > match "/i-dont-exist"
 Nothing : Maybe.Maybe App.Routes.Sitemap
@@ -71,19 +71,19 @@ Nothing : Maybe.Maybe App.Routes.Sitemap
 Just (UserR 1) : Maybe.Maybe App.Routes.Sitemap
 
 > match "/users/1/hello-world"
-Just (UserPostR (1, "hello-world")) : Maybe.Maybe App.Routes.Sitemap
+Just (UserPostR 1 "hello-world") : Maybe.Maybe App.Routes.Sitemap
 ```
 
 Or to render routes:
 
 ```elm
-> route (HomeR ())
+> route HomeR
 "/" : String
 
-> route (AboutR ())
+> route AboutR
 "/about" : String
 
-> route (UserPostR (1, "hello"))
+> route (UserPostR 1 "hello")
 "/users/1/hello" : String
 ```
 

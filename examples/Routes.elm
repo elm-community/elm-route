@@ -3,10 +3,10 @@ module Routes exposing (AdminSitemap(..), Sitemap(..), match, route)
 {-| This module demonstates basic usage of the API.
 
     > match "/"
-    Just (HomeR ()) : Maybe Routes.Sitemap
+    Just (HomeR ) : Maybe Routes.Sitemap
 
     > match "/users"
-    Just (UsersR ()) : Maybe Routes.Sitemap
+    Just (UsersR ) : Maybe Routes.Sitemap
 
     > match "/admin/users/1"
     Just (Admin (AdminUserR 1)) : Maybe Routes.Sitemap
@@ -19,8 +19,8 @@ import Route exposing (..)
 
 
 type AdminSitemap
-    = AdminHomeR ()
-    | AdminUsersR ()
+    = AdminHomeR
+    | AdminUsersR
     | AdminUserR Int
 
 
@@ -29,11 +29,11 @@ adminHomeR =
 
 
 adminUsersR =
-    AdminUsersR := "admin" <//> static "users"
+    AdminUsersR := static "admin" </> static "users"
 
 
 adminUserR =
-    AdminUserR := "admin" <//> "users" <//> int
+    AdminUserR := static "admin" </> static "users" </> int
 
 
 adminSitemap =
@@ -43,10 +43,10 @@ adminSitemap =
 routeAdmin : AdminSitemap -> String
 routeAdmin r =
     case r of
-        AdminHomeR () ->
+        AdminHomeR ->
             reverse adminHomeR []
 
-        AdminUsersR () ->
+        AdminUsersR ->
             reverse adminUsersR []
 
         AdminUserR id ->
@@ -54,12 +54,12 @@ routeAdmin r =
 
 
 type Sitemap
-    = HomeR ()
-    | AboutR ()
-    | UsersR ()
+    = HomeR
+    | AboutR
+    | UsersR
     | UserR Int
     | UserPostsR Int
-    | UserPostR ( Int, String )
+    | UserPostR Int String
     | AdminR AdminSitemap
 
 
@@ -76,19 +76,19 @@ usersR =
 
 
 userR =
-    UserR := "users" <//> int
+    UserR := static "users" </> int
 
 
 userPostsR =
-    UserPostsR := "users" <//> int <> "posts"
+    UserPostsR := static "users" </> int </> static "posts"
 
 
 userPostR =
-    UserPostR := "users" <//> int </> string
+    UserPostR := static "users" </> int </> string
 
 
 sitemap =
-    router [ homeR, aboutR, usersR, userR, userPostsR, userPostR, child AdminR adminSitemap ]
+    router [ homeR, aboutR, usersR, userR, userPostsR, userPostR, map AdminR adminSitemap ]
 
 
 match : String -> Maybe Sitemap
@@ -99,13 +99,13 @@ match =
 route : Sitemap -> String
 route r =
     case r of
-        HomeR () ->
+        HomeR ->
             reverse homeR []
 
-        AboutR () ->
+        AboutR ->
             reverse aboutR []
 
-        UsersR () ->
+        UsersR ->
             reverse usersR []
 
         UserR id ->
@@ -114,7 +114,7 @@ route r =
         UserPostsR id ->
             reverse userPostsR [ toString id ]
 
-        UserPostR ( uid, pid ) ->
+        UserPostR uid pid ->
             reverse userPostR [ toString uid, pid ]
 
         AdminR r ->

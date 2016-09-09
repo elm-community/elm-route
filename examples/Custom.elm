@@ -39,7 +39,7 @@ type Sitemap
 
 
 categoryR =
-    CategoryR := "categories" <//> custom category
+    CategoryR := static "categories" </> custom category
 
 
 sitemap : Router Sitemap
