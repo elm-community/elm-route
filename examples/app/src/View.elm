@@ -1,10 +1,10 @@
 module View exposing (view)
 
+import Data
 import Html exposing (..)
 import Html.Attributes exposing (href)
 import Html.Events exposing (onWithOptions)
 import Json.Decode as Json
-import Data
 import Routes exposing (Sitemap(..))
 import Update exposing (Msg(..), Model)
 
@@ -56,15 +56,15 @@ view : Model -> Html Msg
 view model =
     div []
         [ ul []
-            [ li [] [ link (HomeR ()) "Home" ]
-            , li [] [ link (PostsR ()) "Posts" ]
-            , li [] [ link (AboutR ()) "About" ]
+            [ li [] [ link HomeR "Home" ]
+            , li [] [ link PostsR "Posts" ]
+            , li [] [ link AboutR "About" ]
             ]
         , case model.route of
-            HomeR () ->
+            HomeR ->
                 home
 
-            PostsR () ->
+            PostsR ->
                 if model.ready then
                     posts model.posts
                 else
@@ -81,7 +81,7 @@ view model =
                     ( True, Just p ) ->
                         post p
 
-            AboutR () ->
+            AboutR ->
                 about
 
             NotFoundR ->

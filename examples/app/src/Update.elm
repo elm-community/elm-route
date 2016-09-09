@@ -53,7 +53,7 @@ urlUpdate route ({ ready } as m) =
             { m | route = route }
     in
         case route of
-            PostsR () ->
+            PostsR ->
                 if ready then
                     model ! []
                 else
