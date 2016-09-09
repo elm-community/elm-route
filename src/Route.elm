@@ -44,9 +44,9 @@ type Component
 and they keep track of their path components in order to provide
 automatic reverse routing.
 -}
-type Route res
+type Route a
     = Route
-        { parser : Parser res
+        { parser : Parser a
         , components : List Component
         }
 
@@ -131,13 +131,13 @@ router rs =
     sitemap = router [blogR]
 
     > match sitemap "/blog"
-    Just BlogR : Maybe.Maybe Sitemap
+    Just BlogR : Maybe Sitemap
 
 -}
 static : String -> Route (a -> a)
 static s =
     Route
-        { parser = always identity <$> Combine.string s
+        { parser = identity <$ Combine.string s
         , components = [ CStatic s ]
         }
 
@@ -158,13 +158,13 @@ static s =
     sitemap = router [categoryR]
 
     > match sitemap "/categories/a"
-    Nothing : Maybe.Maybe Sitemap
+    Nothing : Maybe Sitemap
 
     > match sitemap "/categories/Post"
-    Just (CategoryR Post) : Maybe.Maybe Sitemap
+    Just (CategoryR Post) : Maybe Sitemap
 
     > match sitemap "/categories/Snippet"
-    Just (CategoryR Snippet) : Maybe.Maybe Sitemap
+    Just (CategoryR Snippet) : Maybe Sitemap
 
 See `examples/Custom.elm` for a complete example.
 
@@ -195,19 +195,19 @@ custom p =
     sitemap = router [postR]
 
     > match sitemap "/posts/"
-    Nothing : Maybe.Maybe Sitemap
+    Nothing : Maybe Sitemap
 
     > match sitemap "/posts/hello-world/test"
-    Nothing : Maybe.Maybe Sitemap
+    Nothing : Maybe Sitemap
 
     > match sitemap "/posts/hello-world"
-    Just (PostR "hello-world") : Maybe.Maybe Sitemap
+    Just (PostR "hello-world") : Maybe Sitemap
 
 -}
 string : Route ((String -> a) -> a)
 string =
     Route
-        { parser = (\s f -> f s) <$> Combine.regex "[^/]+"
+        { parser = (\s k -> k s) <$> Combine.regex "[^/]+"
         , components = [ CString ]
         }
 
@@ -221,19 +221,19 @@ string =
     sitemap = router [userR]
 
     > match sitemap "/users/a"
-    Nothing : Maybe.Maybe Sitemap
+    Nothing : Maybe Sitemap
 
     > match sitemap "/users/1"
-    Just (UserR 1) : Maybe.Maybe Sitemap
+    Just (UserR 1) : Maybe Sitemap
 
     > match sitemap "/users/-1"
-    Just (UserR -1) : Maybe.Maybe Sitemap
+    Just (UserR -1) : Maybe Sitemap
 
 -}
 int : Route ((Int -> a) -> a)
 int =
     Route
-        { parser = (\s f -> f s) <$> Combine.Num.int
+        { parser = (\s k -> k s) <$> Combine.Num.int
         , components = [ CInt ]
         }
 
@@ -247,7 +247,7 @@ int =
     sitemap = router [addR]
 
     > match sitemap "/1/2"
-    Just (AddR 1 2) : Maybe.Maybe Sitemap
+    Just (AddR 1 2) : Maybe Sitemap
 
 -}
 and : Route (a -> b) -> Route (b -> c) -> Route (a -> c)
@@ -267,7 +267,7 @@ and l r =
     sitemap = router [addR]
 
     > match sitemap "/1/2"
-    Just (AddR 1 2) : Maybe.Maybe Sitemap
+    Just (AddR 1 2) : Maybe Sitemap
 
 -}
 (</>) : Route (a -> b) -> Route (b -> c) -> Route (a -> c)
@@ -321,20 +321,20 @@ function will return the first Route that matches that path.
     usersR = UserR := static "users" </> int
     sitemap = router [homeR, userR, usersR]
 
-    > match siteMap "/a"
-    Nothing : Maybe.Maybe Sitemap
+    > match sitemap "/a"
+    Nothing : Maybe Sitemap
 
-    > match siteMap "/"
-    Just HomeR : Maybe.Maybe Sitemap
+    > match sitemap "/"
+    Just HomeR : Maybe Sitemap
 
-    > match siteMap "/users"
-    Just UsersR : Maybe.Maybe Sitemap
+    > match sitemap "/users"
+    Just UsersR : Maybe Sitemap
 
-    > match siteMap "/users/1"
-    Just (UserR 1) : Maybe.Maybe Sitemap
+    > match sitemap "/users/1"
+    Just (UserR 1) : Maybe Sitemap
 
-    > match siteMap "/users/1"
-    Just (UserR 1) : Maybe.Maybe Sitemap
+    > match sitemap "/users/1"
+    Just (UserR 1) : Maybe Sitemap
 
 -}
 match : Router a -> String -> Maybe a
@@ -342,8 +342,7 @@ match (Router r) path =
     case String.uncons path of
         Just ( '/', path ) ->
             Combine.parse r path
-                |> Result.toMaybe
-                << fst
+                |> (Result.toMaybe << fst)
 
         _ ->
             Nothing
@@ -370,27 +369,27 @@ match (Router r) path =
     > reverse userR ["1"]
     "/users/1"
 
-If you are willing to write some boilerplate, this function can be used
-to construct a reasonably-safe reverse routing function specific to your
+If you are willing to write some boilerplate, `reverse` can be used to
+construct a type safe reverse routing function specific to your
 application:
 
-    render : Sitemap -> String
-    render r =
+    toString : Sitemap -> String
+    toString r =
       case r of
         HomeR  -> reverse homeR []
         UsersR  -> reverse usersR []
         UserR uid -> reverse userR [toString uid]
 
-    > render HomeR
+    > toString HomeR
     "/"
 
-    > render UsersR
+    > toString UsersR
     "/users"
 
-    > render (UserR 1)
+    > toString (UserR 1)
     "/users/1"
 
-This function will crash at runtime if there is a mismatch between the
+`reverse` will crash at runtime if there is a mismatch between the
 route and the list of arguments that is passed in. For example:
 
     > reverse deepR []

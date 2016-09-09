@@ -8,87 +8,83 @@ This library defines functions for constructing route parsers.  See
 the documentation of the [Route][route] module for more information.
 A full example is available at `examples/app`.
 
-See also [elm-route-parser][erp] for an alternative approach to route
-parsing.
-
 ## Usage
 
 First define your routes:
 
 ```elm
-module App.Routes exposing ( AdminSitemap(..), Sitemap(..), match, route )
+module App.Routes exposing ( Route(..), match, route )
 
 import Route exposing (..)
 
-type Sitemap
-  = HomeR
-  | AboutR
-  | UsersR
-  | UserR Int
-  | UserPostsR Int
-  | UserPostR Int String
+type Route
+  = Home
+  | About
+  | Users
+  | User Int
+  | UserPosts Int
+  | UserPost Int String
 
-homeR = HomeR := static ""
-aboutR = AboutR := static "about"
-usersR = UsersR := static "users"
-userR = UserR := static "users" </> int
-userPostsR = UserPostsR := static "users" </> int </> "posts"
-userPostR = UserPostR := static "users" </> int </> string
-sitemap = router [homeR, aboutR, usersR, userR, userPostsR, userPostR]
+home = Home := static ""
+about = About := static "about"
+users = Users := static "users"
+user = User := static "users" </> int
+userPosts = UserPosts := static "users" </> int </> static "posts"
+userPost = UserPost := static "users" </> int </> string
+routes = router [home, about, users, user, userPosts, userPost]
 
 match : String -> Maybe Sitemap
-match = Route.match sitemap
+match = Route.match routes
 
-route : Sitemap -> String
-route r =
-  case r of
-    HomeR -> reverse homeR []
-    AboutR -> reverse aboutR []
-    UsersR -> reverse usersR []
-    UserR id -> reverse userR [toString id]
-    UserPostsR id -> reverse userPostsR [toString id]
-    UserPostR uid pid -> reverse userPostR [toString uid, pid]
+toString : Sitemap -> String
+toString route =
+  case route of
+    Home -> reverse home []
+    About -> reverse about []
+    Users -> reverse users []
+    User id -> reverse user [toString id]
+    UserPosts id -> reverse userPosts [toString id]
+    UserPost uid pid -> reverse userPost [toString uid, pid]
 ```
 
 You may then use them to match routes:
 
 ```elm
-> import App.Routes exposing (..)
+> import App.Routes as Routes exposing (Route(..), match)
 
 > match "/"
-Just HomeR : Maybe.Maybe App.Routes.Sitemap
+Just Home : Maybe Route
 
 > match "/users"
-Just UsersR  : Maybe.Maybe App.Routes.Sitemap
+Just Users  : Maybe Route
 
 > match "/i-dont-exist"
-Nothing : Maybe.Maybe App.Routes.Sitemap
+Nothing : Maybe Route
 
 > match "/users/a"
-Nothing : Maybe.Maybe App.Routes.Sitemap
+Nothing : Maybe Route
 
 > match "/users/1"
-Just (UserR 1) : Maybe.Maybe App.Routes.Sitemap
+Just (User 1) : Maybe Route
 
 > match "/users/1/hello-world"
-Just (UserPostR 1 "hello-world") : Maybe.Maybe App.Routes.Sitemap
+Just (UserPost 1 "hello-world") : Maybe Route
 ```
 
-Or to render routes:
+And to convert routes to strings:
 
 ```elm
-> route HomeR
+> Routes.toString Home
 "/" : String
 
-> route AboutR
+> Routes.toString About
 "/about" : String
 
-> route (UserPostR 1 "hello")
+> Routes.toString (UserPost 1 "hello")
 "/users/1/hello" : String
 ```
 
 See the `examples` directory and `tests/Tests.elm` for more.
 
 
-[erp]: https://github.com/etaque/elm-route-parser
 [route]: http://package.elm-lang.org/packages/Bogdanp/elm-route/latest/Route
