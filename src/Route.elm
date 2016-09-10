@@ -180,7 +180,7 @@ custom p =
     type Sitemap
       = PostR String
 
-    postR = PostR := "posts" </> string
+    postR = PostR := static "posts" </> string
     sitemap = router [postR]
 
     > match sitemap "/posts/"
@@ -206,7 +206,7 @@ string =
     type Sitemap
       = UserR Int
 
-    userR = UserR := "users" </> int
+    userR = UserR := static "users" </> int
     sitemap = router [userR]
 
     > match sitemap "/users/a"
