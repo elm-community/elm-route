@@ -24,6 +24,7 @@ type Route
   | User Int
   | UserPosts Int
   | UserPost Int String
+  | NotFound
 
 home = Home := static ""
 about = About := static "about"
@@ -45,6 +46,7 @@ toString route =
     User id -> reverse user [toString id]
     UserPosts id -> reverse userPosts [toString id]
     UserPost uid pid -> reverse userPost [toString uid, pid]
+    NotFound -> Debug.crash "cannot route to NotFound"
 ```
 
 You may then use them to match routes:
@@ -84,7 +86,32 @@ And to convert routes to strings:
 "/users/1/hello" : String
 ```
 
+To use it with [Navigation][nav], define `match` in terms of `Location`
+
+``` elm
+match : Location -> Sitemap
+match location =
+  location.pathname
+    |> Route.match routes
+    |> Maybe.withDefault NotFound
+```
+
+then use it in your `Program`:
+
+``` elm
+main : Program Never
+main =
+    Navigation.program (Navigation.makeParser Routes.match)
+        { init = init
+        , update = update
+        , urlUpdate = urlUpdate
+        , view = view
+        , subscriptions = Sub.none
+        }
+```
+
 See the `examples` directory and `tests/Tests.elm` for more.
 
 
 [route]: http://package.elm-lang.org/packages/Bogdanp/elm-route/latest/Route
+[nav]: http://package.elm-lang.org/packages/elm-lang/navigation/latest
