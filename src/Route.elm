@@ -51,20 +51,9 @@ type Route a
         }
 
 
-unroute (Route r) =
-    r
-
-
-parser =
-    unroute >> .parser
-
-
-components =
-    unroute >> .components
-
-
 {-| A Router is, at its core, a List of Routes.
 
+    sitemap : Router a
     sitemap = router [routeA, routeB]
 
 -}
@@ -82,10 +71,10 @@ type Router a
 
 -}
 route : a -> Route (a -> b) -> Route b
-route x r =
+route x (Route r) =
     Route
-        { parser = parser r `Combine.andThen` (\f -> Combine.succeed <| f x)
-        , components = components r
+        { parser = r.parser `Combine.andThen` (\k -> Combine.succeed <| k x)
+        , components = r.components
         }
 
 
@@ -117,7 +106,7 @@ infixl 7 :=
 -}
 router : List (Route a) -> Router a
 router rs =
-    List.map (\r -> parser r <* Combine.end) rs
+    List.map (\(Route r) -> r.parser <* Combine.end) rs
         |> Combine.choice
         |> Router
 
@@ -181,7 +170,7 @@ custom p =
                     Err (String.join " or " ms)
     in
         Route
-            { parser = (\x f -> f x) <$> p
+            { parser = (|>) <$> p
             , components = [ CCustom validator ]
             }
 
@@ -207,7 +196,7 @@ custom p =
 string : Route ((String -> a) -> a)
 string =
     Route
-        { parser = (\s k -> k s) <$> Combine.regex "[^/]+"
+        { parser = (|>) <$> Combine.regex "[^/]+"
         , components = [ CString ]
         }
 
@@ -233,7 +222,7 @@ string =
 int : Route ((Int -> a) -> a)
 int =
     Route
-        { parser = (\s k -> k s) <$> Combine.Num.int
+        { parser = (|>) <$> Combine.Num.int
         , components = [ CInt ]
         }
 
@@ -251,10 +240,10 @@ int =
 
 -}
 and : Route (a -> b) -> Route (b -> c) -> Route (a -> c)
-and l r =
+and (Route l) (Route r) =
     Route
-        { parser = (>>) <$> (parser l <* Combine.string "/") <*> parser r
-        , components = components l ++ components r
+        { parser = (>>) <$> l.parser <*> (Combine.string "/" *> r.parser)
+        , components = l.components ++ r.components
         }
 
 
@@ -348,7 +337,7 @@ match (Router r) path =
             Nothing
 
 
-{-| Render a path given a route and a list of route components.
+{-| Render a path given a Route and a list of route components.
 
     type Sitemap
       = HomeR
@@ -418,7 +407,7 @@ route and the list of arguments that is passed in. For example:
 
 -}
 reverse : Route a -> List String -> String
-reverse r inputs =
+reverse (Route r) inputs =
     let
         accumulate cs is xs =
             case ( is, xs ) of
@@ -450,4 +439,4 @@ reverse r inputs =
                 _ ->
                     Debug.crash "'reverse' called with an unexpected number of arguments"
     in
-        accumulate [] inputs (components r)
+        accumulate [] inputs r.components
