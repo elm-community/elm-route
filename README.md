@@ -34,10 +34,10 @@ userPosts = UserPosts := static "users" </> int </> static "posts"
 userPost = UserPost := static "users" </> int </> string
 routes = router [home, about, users, user, userPosts, userPost]
 
-match : String -> Maybe Sitemap
+match : String -> Maybe Route
 match = Route.match routes
 
-toString : Sitemap -> String
+toString : Route -> String
 toString route =
   case route of
     Home -> reverse home []
@@ -76,6 +76,8 @@ Just (UserPost 1 "hello-world") : Maybe Route
 And to convert routes to strings:
 
 ```elm
+> import App.Routes as Routes
+
 > Routes.toString Home
 "/" : String
 
@@ -89,16 +91,18 @@ And to convert routes to strings:
 To use it with [Navigation][nav], define `match` in terms of `Location`
 
 ``` elm
-match : Location -> Sitemap
+match : Location -> Route
 match location =
   location.pathname
-    |> Route.match routes
+    |> Routes.match routes
     |> Maybe.withDefault NotFound
 ```
 
 then use it in your `Program`:
 
 ``` elm
+import App.Routes as Routes
+
 main : Program Never
 main =
     Navigation.program (Navigation.makeParser Routes.match)
