@@ -1,7 +1,7 @@
 module Data exposing (Post, fetchPosts, lookupPost)
 
 import Http
-import Json.Decode as Json exposing ((:=), Decoder, int, string)
+import Json.Decode as JD exposing (Decoder, int, string)
 import Task exposing (Task)
 
 
@@ -22,14 +22,15 @@ posts : Decoder (List Post)
 posts =
     let
         post =
-            Json.object3 Post
-                ("id" := int)
-                ("title" := string)
-                ("body" := string)
+            JD.map3 Post
+                (JD.field "id" int)
+                (JD.field "title" string)
+                (JD.field "body" string)
     in
-        Json.list post
+        JD.list post
 
 
 fetchPosts : Task Http.Error (List Post)
 fetchPosts =
-    Http.get posts "/api/posts"
+    Http.get "/api/posts" posts
+        |> Http.toTask
