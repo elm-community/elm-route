@@ -8,8 +8,7 @@
         "src"
     ],
     "exposed-modules": [
-        "Route",
-        "Route.QueryString"
+        "Route"
     ],
     "dependencies": {
         "Bogdanp/elm-combine": "3.0.0 <= v < 4.0.0",
