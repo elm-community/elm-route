@@ -1,5 +1,13 @@
 # elm-route changelog
 
+## elm-route 4.0.0 (TBD)
+
+### Changes
+
+* Upgraded to Elm 0.18
+* `Route.QueryString` has been extracted into its own package: `Bogdanp/elm-querystring`
+* `map` has been removed
+
 ## elm-route 2.0.1 (2016-05-11)
 
 ### Changes

@@ -13,7 +13,6 @@ module Route
         , int
         , and
         , (</>)
-        , map
         )
 
 {-| This module exposes combinators for creating route parsers.
@@ -24,11 +23,10 @@ module Route
 @docs route, (:=), router, match, reverse
 
 ## Route combinators
-@docs static, custom, string, int, and, (</>), map
+@docs static, custom, string, int, and, (</>)
 -}
 
-import Combine exposing (Parser)
-import Combine.Infix exposing (..)
+import Combine exposing (..)
 import Combine.Num
 import String
 
@@ -46,7 +44,7 @@ automatic reverse routing.
 -}
 type Route a
     = Route
-        { parser : Parser a
+        { parser : Parser () a
         , components : List Component
         }
 
@@ -58,7 +56,7 @@ type Route a
 
 -}
 type Router a
-    = Router (Parser a)
+    = Router (Parser () a)
 
 
 {-| Declare a Route.
@@ -73,7 +71,7 @@ type Router a
 route : a -> Route (a -> b) -> Route b
 route x (Route r) =
     Route
-        { parser = r.parser `Combine.andThen` (\k -> Combine.succeed <| k x)
+        { parser = r.parser >>= (\k -> Combine.succeed <| k x)
         , components = r.components
         }
 
@@ -158,15 +156,15 @@ static s =
 See `examples/Custom.elm` for a complete example.
 
 -}
-custom : Parser a -> Route ((a -> b) -> b)
+custom : Parser () a -> Route ((a -> b) -> b)
 custom p =
     let
         validator s =
             case Combine.parse p s of
-                ( Ok _, _ ) ->
+                Ok _ ->
                     Ok ()
 
-                ( Err ms, _ ) ->
+                Err ( _, _, ms ) ->
                     Err (String.join " or " ms)
     in
         Route
@@ -265,38 +263,6 @@ and (Route l) (Route r) =
 infixl 8 </>
 
 
-{-| Routers may be maped. This function is useful in situations
-where you want to split your routes into multiple types while still
-maintaining a single top-level "site map".
-
-    type AdminSitemap
-      = AdminHomeR
-      | AdminUsersR
-
-    adminHomeR = AdminHomeR := static "admin"
-    adminUsersR = AdminHomeR := static "admin/users"
-    adminSitemap = router [adminHomeR, adminUsersR]
-
-    type Sitemap
-      = HomeR
-      | BlogR
-      | AdminR AdminSitemap
-
-    homeR = HomeR := static ""
-    blogR = BlogR := static "blog"
-    sitemap = router [homeR, blogR, map AdminR adminSitemap]
-
-See `examples/Reuse.elm` for a more advanced use case of this.
-
--}
-map : (a -> b) -> Router a -> Route b
-map f (Router r) =
-    Route
-        { parser = f <$> r
-        , components = []
-        }
-
-
 {-| Given a Router and an arbitrary String representing a path, this
 function will return the first Route that matches that path.
 
@@ -331,7 +297,8 @@ match (Router r) path =
     case String.uncons path of
         Just ( '/', path ) ->
             Combine.parse r path
-                |> (Result.toMaybe << fst)
+                |> Result.toMaybe
+                |> Maybe.map (\( _, _, x ) -> x)
 
         _ ->
             Nothing

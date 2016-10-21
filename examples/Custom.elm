@@ -7,7 +7,6 @@ respectively.
 -}
 
 import Combine exposing (..)
-import Combine.Infix exposing (..)
 import Route exposing (..)
 
 
@@ -16,7 +15,7 @@ type Category
     | Post
 
 
-category : Parser Category
+category : Parser s Category
 category =
     choice
         [ Snippet <$ Combine.string "snippet"
