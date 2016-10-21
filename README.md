@@ -102,15 +102,22 @@ then use it in your `Program`:
 
 ``` elm
 import App.Routes as Routes
+import Navigation exposing (Location)
 
-main : Program Never
+type Msg
+  = ChangeRoute Sitemap
+
+parseRoute : Location -> Msg
+parseRoute =
+  Routes.match >> ChangeRoute
+
+main : Program Never Model Msg
 main =
-    Navigation.program (Navigation.makeParser Routes.match)
+    Navigation.program parseRoute
         { init = init
         , update = update
-        , urlUpdate = urlUpdate
         , view = view
-        , subscriptions = Sub.none
+        , subscriptions = subscriptions
         }
 ```
 
