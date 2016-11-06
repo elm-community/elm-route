@@ -1,7 +1,6 @@
 module Tests exposing (..)
 
-import Combine
-import Combine.Infix exposing ((<$))
+import Combine exposing ((<$))
 import Expect
 import Fuzz exposing (Fuzzer, tuple, tuple3)
 import Route exposing (..)
@@ -16,7 +15,7 @@ type Sitemap
     | UserEmails Int
     | UserEmail Int Int
     | Deep Int Int Int
-    | Custom' Foo
+    | CustomR Foo
 
 
 type Foo
@@ -63,7 +62,7 @@ deepR =
 
 customR : Route Sitemap
 customR =
-    Custom' := static "custom" </> custom fooP
+    CustomR := static "custom" </> custom fooP
 
 
 routes : Router Sitemap
@@ -100,7 +99,7 @@ render r =
         Deep x y z ->
             reverse deepR [ toString x, toString y, toString z ]
 
-        Custom' x ->
+        CustomR x ->
             reverse customR [ toString x ]
 
 
@@ -128,7 +127,7 @@ matching =
         matches =
             Just >> equal
 
-        matches' x path =
+        matches_ x path =
             matches x path ()
 
         fails =
@@ -152,22 +151,22 @@ matching =
                 (matches Users "/users")
             , test
                 "matches custom ADT routes"
-                (matches (Custom' Foo) "/custom/Foo")
+                (matches (CustomR Foo) "/custom/Foo")
             , test
                 "matches custom ADT routes"
-                (matches (Custom' Bar) "/custom/Bar")
+                (matches (CustomR Bar) "/custom/Bar")
             , fuzz ints1
                 "matches one dynamic segment"
-                (\x -> matches' (User x) ("/users/" ++ toString x))
+                (\x -> matches_ (User x) ("/users/" ++ toString x))
             , fuzz ints1
                 "matches one suffixed dynamic segment"
-                (\x -> matches' (UserEmails x) ("/users/" ++ toString x ++ "/emails"))
+                (\x -> matches_ (UserEmails x) ("/users/" ++ toString x ++ "/emails"))
             , fuzz ints2
                 "matches two dynamic segments around a static segment"
-                (\( x, y ) -> matches' (UserEmail x y) ("/users/" ++ toString x ++ "/emails/" ++ toString y))
+                (\( x, y ) -> matches_ (UserEmail x y) ("/users/" ++ toString x ++ "/emails/" ++ toString y))
             , fuzz ints3
                 "matches many dynamic segments"
-                (\( x, y, z ) -> matches' (Deep x y z) ("/deep/" ++ String.join "/" (List.map toString [ x, y, z ])))
+                (\( x, y, z ) -> matches_ (Deep x y z) ("/deep/" ++ String.join "/" (List.map toString [ x, y, z ])))
             ]
 
 
@@ -209,7 +208,7 @@ rendering =
                 (compare [ "users" ] Users)
             , test
                 "renders custom parser routes"
-                (compare [ "custom", "Foo" ] (Custom' Foo))
+                (compare [ "custom", "Foo" ] (CustomR Foo))
             , fuzz ints1
                 "renders dynamic routes"
                 (\x -> compare [ "users", toString x ] (User x) ())
