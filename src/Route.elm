@@ -136,7 +136,7 @@ static s =
 
     type Category
       = Snippet
-      | Post
+      | Post Int
 
     type Sitemap
       = CategoryR Category
@@ -147,8 +147,8 @@ static s =
     > match sitemap "/categories/a"
     Nothing : Maybe Sitemap
 
-    > match sitemap "/categories/Post"
-    Just (CategoryR Post) : Maybe Sitemap
+    > match sitemap "/categories/Post/5"
+    Just (CategoryR (Post 5)) : Maybe Sitemap
 
     > match sitemap "/categories/Snippet"
     Just (CategoryR Snippet) : Maybe Sitemap
