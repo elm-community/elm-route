@@ -1,7 +1,7 @@
-# elm-route [![Build Status](https://travis-ci.org/Bogdanp/elm-route.svg)](https://travis-ci.org/Bogdanp/elm-route)
+# elm-route [![Build Status](https://travis-ci.org/elm-community/elm-route.svg)](https://travis-ci.org/elm-community/elm-route)
 
 ``` shell
-elm package install Bogdanp/elm-route
+elm package install elm-community/elm-route
 ```
 
 This library defines functions for constructing route parsers.  See
@@ -124,5 +124,5 @@ main =
 See the `examples` directory and `tests/Tests.elm` for more.
 
 
-[route]: http://package.elm-lang.org/packages/Bogdanp/elm-route/latest/Route
+[route]: http://package.elm-lang.org/packages/elm-community/elm-route/latest/Route
 [nav]: http://package.elm-lang.org/packages/elm-lang/navigation/latest
