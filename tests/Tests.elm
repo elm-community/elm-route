@@ -150,10 +150,10 @@ matching =
                 "matches static paths"
                 (matches Users "/users")
             , test
-                "matches custom ADT routes"
+                "matches custom ADT routes - Foo constructor"
                 (matches (CustomR Foo) "/custom/Foo")
             , test
-                "matches custom ADT routes"
+                "matches custom ADT routes - Bar constructor"
                 (matches (CustomR Bar) "/custom/Bar")
             , fuzz ints1
                 "matches one dynamic segment"
