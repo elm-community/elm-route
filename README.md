@@ -105,7 +105,7 @@ import App.Routes as Routes
 import Navigation exposing (Location)
 
 type Msg
-  = ChangeRoute Sitemap
+  = ChangeRoute Route
 
 parseRoute : Location -> Msg
 parseRoute =
